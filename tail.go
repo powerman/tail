@@ -8,33 +8,6 @@ import (
 	"time"
 )
 
-var (
-	pollDelay   = 200 * time.Millisecond // delay between polling to save CPU
-	pollTimeout = time.Second            // how long to wait before returning os.ErrNotExist
-)
-
-// Logger is an interface used to log tail state changes.
-type Logger interface {
-	Printf(format string, v ...interface{})
-}
-
-// The LoggerFunc type is an adapter to allow the use of ordinary
-// function as a logger. If f is a function with the appropriate
-// signature, LoggerFunc(f) is a Logger that calls f.
-type LoggerFunc func(format string, v ...interface{})
-
-// Printf implements Logger interface.
-func (f LoggerFunc) Printf(format string, v ...interface{}) { f(format, v...) }
-
-func unwrap(err error) error {
-	switch err := err.(type) {
-	case *os.PathError:
-		return err.Err
-	default:
-		return err
-	}
-}
-
 // Tail is an io.Reader with `tail -n 0 -F path` behaviour.
 //
 // Unlike `tail` it does track renamed/removed file contents up to the
@@ -49,6 +22,8 @@ type Tail struct {
 	ctx         context.Context
 	log         Logger
 	path        string
+	pollDelay   time.Duration
+	pollTimeout time.Duration
 	f           *trackedFile
 	lasterr     error
 	logReplaced bool
@@ -59,12 +34,17 @@ type Tail struct {
 // If path already exists tracking begins from the end of the file.
 //
 // Supported path types: usual file, FIFO and symlink to usual or FIFO.
-func Follow(ctx context.Context, log Logger, path string) *Tail {
+func Follow(ctx context.Context, log Logger, path string, options ...Option) *Tail {
 	t := &Tail{
-		ctx:  ctx,
-		log:  log,
-		path: path,
-		f:    newTrackedFile(ctx, path),
+		ctx:         ctx,
+		log:         log,
+		path:        path,
+		pollDelay:   DefaultPollDelay,
+		pollTimeout: DefaultPollTimeout,
+		f:           newTrackedFile(ctx, path),
+	}
+	for _, option := range options {
+		option.apply(t)
 	}
 
 	err := t.f.Open()
@@ -107,7 +87,7 @@ func (t *Tail) Read(p []byte) (int, error) {
 
 	var timeoutc <-chan time.Time
 	if t.lasterr == nil {
-		timeoutc = time.After(pollTimeout)
+		timeoutc = time.After(t.pollTimeout)
 	}
 	t.lasterr = nil
 
@@ -136,7 +116,7 @@ func (t *Tail) tryOpen(timeoutc <-chan time.Time) error {
 		}
 
 		select {
-		case <-time.After(pollDelay):
+		case <-time.After(t.pollDelay):
 		case <-timeoutc:
 			return err
 		case <-t.ctx.Done():
@@ -183,7 +163,7 @@ func (t *Tail) read(timeoutc <-chan time.Time, p []byte) (int, error) {
 	}
 
 	select {
-	case <-time.After(pollDelay):
+	case <-time.After(t.pollDelay):
 		return 0, nil
 	case <-timeoutc:
 		t.log.Printf("tail: error reading %q: %s", t.path, err)
