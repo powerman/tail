@@ -48,8 +48,8 @@ func newTestTail(t *check.C) *testTail {
 		t:       t,
 		f:       f,
 		path:    f.Name(),
-		bufc:    make(chan []byte, 3), // buffered to detach actual reads from reads in test (to lower chance of race in tests)
-		errc:    make(chan error),     // must not be buffered to sync on errors
+		bufc:    make(chan []byte),
+		errc:    make(chan error), // must not be buffered to sync on errors
 		created: []string{f.Name()},
 		opened:  []*os.File{f},
 	}

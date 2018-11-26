@@ -299,16 +299,17 @@ func TestRotateSymlink(tt *testing.T) {
 	tail.Want(pollDelay*3/2, "old1.1\nold1.2\n", nil)
 
 	tail.RemoveSymlink()
-	time.Sleep(pollTimeout - pollDelay/2)
+	time.Sleep(pollTimeout - pollDelay*5/2)
 	tail.CreateSymlink()
 	tail.Write("new1.1\nnew1.2\n")
-	tail.Want(pollDelay*3/2, "old1.1\nold1.2\nnew1.1\nnew1.2\n", nil)
+	tail.Want(pollDelay*3/2, "new1.1\nnew1.2\nold1.1\nold1.2\nnew1.1\nnew1.2\n", nil)
 
 	tail.RemoveSymlink()
 	time.Sleep(pollTimeout + pollDelay/2)
 	tail.CreateSymlink()
 	tail.Write("new2\n")
 	tail.Want(pollDelay*3/2, "", syscall.ENOENT)
+	tail.Want(pollDelay*3/2, "new2\nold1.1\nold1.2\nnew1.1\nnew1.2\nnew2\n", nil)
 }
 
 func TestErrors(tt *testing.T) {
@@ -331,5 +332,12 @@ func TestErrors(tt *testing.T) {
 	tail.Want(pollDelay*3/2, "", nil)
 	tail.Remove()
 	tail.Want(pollTimeout-pollDelay/2, "", nil)
-	tail.Want(pollDelay, "", syscall.ENOENT)
+	tail.Want(pollDelay, "", nil)
+
+	tail.Create()
+	tail.Write("new\n")
+	tail.Want(pollDelay*3/2, "new\n", nil)
+	tail.Remove()
+	tail.Want(pollTimeout-pollDelay, "", nil)
+	tail.Want(pollDelay*3/2, "", syscall.ENOENT)
 }
