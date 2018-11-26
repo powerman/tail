@@ -2,11 +2,8 @@ package tail
 
 import (
 	"context"
-	"errors"
 	"os"
 )
-
-var errFileReplaced = errors.New("file replaced")
 
 type trackedFile struct {
 	ctx    context.Context
@@ -62,14 +59,7 @@ func (f *trackedFile) Usual() bool {
 	return f.info.Mode()&os.ModeType == 0
 }
 
-func (f *trackedFile) Tracking() error {
+func (f *trackedFile) Detached() bool {
 	fi, err := os.Stat(f.path)
-	switch {
-	case err != nil:
-		return err
-	case !os.SameFile(f.info, fi):
-		return errFileReplaced
-	default:
-		return nil
-	}
+	return err != nil || !os.SameFile(f.info, fi)
 }

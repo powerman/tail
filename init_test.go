@@ -13,9 +13,11 @@ import (
 	"github.com/powerman/check"
 )
 
-var (
+var ( // nolint:gochecknoglobals
 	testTimeFactor = floatGetenv("GO_TEST_TIME_FACTOR", 1.0)
 	testSecond     = time.Duration(float64(time.Second) * testTimeFactor)
+	pollDelay      = testSecond / 10
+	pollTimeout    = testSecond / 2
 )
 
 func floatGetenv(name string, def float64) float64 {
@@ -46,8 +48,8 @@ func newTestTail(t *check.C) *testTail {
 		t:       t,
 		f:       f,
 		path:    f.Name(),
-		bufc:    make(chan []byte, 3), // buffered to detach actual reads from reads in test (to lower chance of race in tests)
-		errc:    make(chan error),     // must not be buffered to sync on errors
+		bufc:    make(chan []byte),
+		errc:    make(chan error), // must not be buffered to sync on errors
 		created: []string{f.Name()},
 		opened:  []*os.File{f},
 	}
@@ -60,10 +62,11 @@ func (tail *testTail) Run() {
 	}
 	ctx, cancel := context.WithCancel(context.Background())
 	tail.Cancel = cancel
+	options := []Option{PollDelay(pollDelay), PollTimeout(pollTimeout)}
 	if tail.symlink == "" {
-		tail.Tail = Follow(ctx, LoggerFunc(tail.t.Logf), tail.path)
+		tail.Tail = Follow(ctx, LoggerFunc(tail.t.Logf), tail.path, options...)
 	} else {
-		tail.Tail = Follow(ctx, LoggerFunc(tail.t.Logf), tail.symlink)
+		tail.Tail = Follow(ctx, LoggerFunc(tail.t.Logf), tail.symlink, options...)
 	}
 	go tail.reader()
 }
@@ -245,8 +248,4 @@ func (tail *testTail) tempPath() string {
 	return f.Name()
 }
 
-func TestMain(m *testing.M) {
-	pollDelay = testSecond / 10
-	pollTimeout = testSecond / 2
-	check.TestMain(m)
-}
+func TestMain(m *testing.M) { check.TestMain(m) }

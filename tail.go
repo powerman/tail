@@ -8,33 +8,6 @@ import (
 	"time"
 )
 
-var (
-	pollDelay   = 200 * time.Millisecond // delay between polling to save CPU
-	pollTimeout = time.Second            // how long to wait before returning os.ErrNotExist
-)
-
-// Logger is an interface used to log tail state changes.
-type Logger interface {
-	Printf(format string, v ...interface{})
-}
-
-// The LoggerFunc type is an adapter to allow the use of ordinary
-// function as a logger. If f is a function with the appropriate
-// signature, LoggerFunc(f) is a Logger that calls f.
-type LoggerFunc func(format string, v ...interface{})
-
-// Printf implements Logger interface.
-func (f LoggerFunc) Printf(format string, v ...interface{}) { f(format, v...) }
-
-func unwrap(err error) error {
-	switch err := err.(type) {
-	case *os.PathError:
-		return err.Err
-	default:
-		return err
-	}
-}
-
 // Tail is an io.Reader with `tail -n 0 -F path` behaviour.
 //
 // Unlike `tail` it does track renamed/removed file contents up to the
@@ -49,9 +22,11 @@ type Tail struct {
 	ctx         context.Context
 	log         Logger
 	path        string
+	pollDelay   time.Duration
+	pollTimeout time.Duration
 	f           *trackedFile
+	next        *trackedFile
 	lasterr     error
-	logReplaced bool
 }
 
 // Follow starts tracking the path using polling.
@@ -59,12 +34,17 @@ type Tail struct {
 // If path already exists tracking begins from the end of the file.
 //
 // Supported path types: usual file, FIFO and symlink to usual or FIFO.
-func Follow(ctx context.Context, log Logger, path string) *Tail {
+func Follow(ctx context.Context, log Logger, path string, options ...Option) *Tail {
 	t := &Tail{
-		ctx:  ctx,
-		log:  log,
-		path: path,
-		f:    newTrackedFile(ctx, path),
+		ctx:         ctx,
+		log:         log,
+		path:        path,
+		pollDelay:   DefaultPollDelay,
+		pollTimeout: DefaultPollTimeout,
+		f:           newTrackedFile(ctx, path),
+	}
+	for _, option := range options {
+		option.apply(t)
 	}
 
 	err := t.f.Open()
@@ -107,12 +87,11 @@ func (t *Tail) Read(p []byte) (int, error) {
 
 	var timeoutc <-chan time.Time
 	if t.lasterr == nil {
-		timeoutc = time.After(pollTimeout)
+		timeoutc = time.After(t.pollTimeout)
 	}
 	t.lasterr = nil
 
 	// Open file for the first time, if Follow failed to open it.
-	// Reopen file, if it become inaccessible or was replaced.
 	if !t.f.Opened() {
 		t.lasterr = t.tryOpen(timeoutc)
 		if t.lasterr != nil {
@@ -129,49 +108,46 @@ func (t *Tail) Read(p []byte) (int, error) {
 
 func (t *Tail) tryOpen(timeoutc <-chan time.Time) error {
 	for err := t.f.Open(); err != nil; err = t.f.Open() {
-		err = unwrap(err)
-		if t.logReplaced {
-			t.logReplaced = false
-			t.log.Printf("tail: %q has become inaccessible: %s", t.path, err)
-		}
-
 		select {
-		case <-time.After(pollDelay):
+		case <-time.After(t.pollDelay):
 		case <-timeoutc:
-			return err
+			return unwrap(err)
 		case <-t.ctx.Done():
 			return io.EOF
 		}
 	}
-
-	if t.logReplaced {
-		t.logReplaced = false
-		t.log.Printf("tail: %q has been replaced;  following new file", t.path)
-	} else {
-		t.log.Printf("tail: %q has appeared;  following new file", t.path)
-	}
+	t.log.Printf("tail: %q has appeared;  following new file", t.path)
 	return nil
 }
 
-func (t *Tail) read(timeoutc <-chan time.Time, p []byte) (int, error) {
-	n, err := t.f.Read(p)
-	if err == io.EOF {
-		if err2 := t.f.Tracking(); err2 != nil {
-			// Read again in case file was appended
-			// and rotated between Read and Tracking.
-			n, err = t.f.Read(p)
-			if err == io.EOF {
-				t.f.Close()
-				if err2 == errFileReplaced {
-					t.logReplaced = true
-				} else {
-					t.log.Printf("tail: %q has become inaccessible: %s", t.path, unwrap(err2))
-				}
-				return t.Read(p)
-			}
+func (t *Tail) openNext() (err error) {
+	if t.next == nil && t.f.Detached() {
+		t.next = newTrackedFile(t.ctx, t.path)
+		err = unwrap(t.next.Open())
+		if err != nil {
+			t.log.Printf("tail: %q has become inaccessible: %s", t.path, err)
+		} else {
+			t.log.Printf("tail: %q has been replaced;  following new file", t.path)
+		}
+	} else if t.next != nil && !t.next.Opened() {
+		err = unwrap(t.next.Open())
+		if err == nil {
+			t.log.Printf("tail: %q has appeared;  following new file", t.path)
 		}
 	}
+	return err
+}
+
+func (t *Tail) read(timeoutc <-chan time.Time, p []byte) (int, error) {
+	errOpen := t.openNext()
+
+	n, err := t.f.Read(p)
 	err = unwrap(err)
+	if err == io.EOF && t.next != nil && t.next.Opened() {
+		t.f.Close()
+		t.f, t.next = t.next, nil
+		return t.read(timeoutc, p)
+	}
 
 	switch err {
 	case nil:
@@ -179,14 +155,18 @@ func (t *Tail) read(timeoutc <-chan time.Time, p []byte) (int, error) {
 	case os.ErrClosed:
 		return 0, io.EOF
 	case io.EOF:
-		timeoutc = nil
+		err = errOpen
+	default:
+		t.log.Printf("tail: error reading %q: %s", t.path, err)
 	}
 
+	if err == nil {
+		timeoutc = nil
+	}
 	select {
-	case <-time.After(pollDelay):
+	case <-time.After(t.pollDelay):
 		return 0, nil
 	case <-timeoutc:
-		t.log.Printf("tail: error reading %q: %s", t.path, err)
 		return 0, err
 	case <-t.ctx.Done():
 		return 0, io.EOF
