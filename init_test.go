@@ -194,7 +194,7 @@ func (tail *testTail) CreateFIFO() {
 	}
 	t := tail.t
 	t.Helper()
-	t.Nil(syscall.Mkfifo(tail.path, 0600))
+	t.Nil(syscall.Mkfifo(tail.path, 0600)) //nolint:gocritic
 	f, err := os.OpenFile(tail.path, os.O_RDWR, 0600)
 	t.Nil(err)
 	tail.f = f

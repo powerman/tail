@@ -27,7 +27,7 @@ func (f *trackedFile) Open() error {
 	}
 	fi, err := file.Stat()
 	if err != nil {
-		file.Close()
+		_ = file.Close()
 		return err
 	}
 
@@ -36,7 +36,7 @@ func (f *trackedFile) Open() error {
 	ctx, cancel := context.WithCancel(f.ctx)
 	go func() {
 		<-ctx.Done()
-		file.Close()
+		_ = file.Close()
 	}()
 
 	f.File = file
