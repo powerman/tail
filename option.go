@@ -27,3 +27,8 @@ func PollDelay(d time.Duration) Option {
 func PollTimeout(d time.Duration) Option {
 	return optionFunc(func(t *Tail) { t.pollTimeout = d })
 }
+
+// Whence lets you change where you want to start with tailing the file.
+func Whence(w int) Option {
+	return optionFunc(func(t *Tail) { t.whence = w })
+}
