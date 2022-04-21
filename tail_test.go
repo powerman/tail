@@ -1,4 +1,4 @@
-package tail
+package tail //nolint:testpackage // TODO
 
 import (
 	"io"

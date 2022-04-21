@@ -1,6 +1,9 @@
 package tail
 
-import "os"
+import (
+	"errors"
+	"os"
+)
 
 // Logger is an interface used to log tail state changes.
 type Logger interface {
@@ -16,9 +19,10 @@ type LoggerFunc func(format string, v ...interface{})
 func (f LoggerFunc) Printf(format string, v ...interface{}) { f(format, v...) }
 
 func unwrap(err error) error {
-	switch err := err.(type) {
-	case *os.PathError:
-		return err.Err
+	var perr *os.PathError
+	switch {
+	case errors.As(err, &perr):
+		return perr.Err
 	default:
 		return err
 	}

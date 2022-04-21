@@ -6,7 +6,7 @@ import (
 )
 
 type trackedFile struct {
-	ctx    context.Context
+	ctx    context.Context //nolint:containedctx // By design.
 	path   string
 	cancel context.CancelFunc
 	info   os.FileInfo
@@ -15,8 +15,11 @@ type trackedFile struct {
 
 func newTrackedFile(ctx context.Context, path string) *trackedFile {
 	return &trackedFile{
-		ctx:  ctx,
-		path: path,
+		ctx:    ctx,
+		path:   path,
+		cancel: nil,
+		info:   nil,
+		File:   nil,
 	}
 }
 
