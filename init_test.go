@@ -1,9 +1,9 @@
-package tail
+package tail //nolint:testpackage // TODO
 
 import (
 	"context"
+	"errors"
 	"io"
-	"io/ioutil"
 	"os"
 	"strconv"
 	"syscall"
@@ -13,9 +13,9 @@ import (
 	"github.com/powerman/check"
 )
 
-var ( // nolint:gochecknoglobals
+var (
 	testTimeFactor = floatGetenv("GO_TEST_TIME_FACTOR", 1.0)
-	testSecond     = time.Duration(float64(time.Second) * testTimeFactor)
+	testSecond     = time.Duration(float64(time.Second) * testTimeFactor) //nolint:revive // It's actually a second.
 	pollDelay      = testSecond / 10
 	pollTimeout    = testSecond / 2
 )
@@ -42,16 +42,19 @@ type testTail struct {
 
 func newTestTail(t *check.C) *testTail {
 	t.Helper()
-	f, err := ioutil.TempFile("", "gotest")
+	f, err := os.CreateTemp("", "gotest")
 	t.Nil(err)
 	tail := &testTail{
 		t:       t,
 		f:       f,
 		path:    f.Name(),
+		symlink: "",
 		bufc:    make(chan []byte),
 		errc:    make(chan error), // must not be buffered to sync on errors
 		created: []string{f.Name()},
 		opened:  []*os.File{f},
+		Cancel:  nil,
+		Tail:    nil,
 	}
 	return tail
 }
@@ -101,7 +104,7 @@ func (tail *testTail) reader() {
 		buf := make([]byte, 8) // use small buffer to ease test large reads
 		n, err := tail.Read(buf)
 		switch {
-		case err == io.EOF:
+		case errors.Is(err, io.EOF):
 			tail.errc <- err
 			close(tail.errc)
 			return
@@ -130,7 +133,7 @@ func (tail *testTail) Want(timeout time.Duration, want string, wanterr error) {
 				err = io.ErrClosedPipe
 			}
 			t.Equal(s, want)
-			if perr, ok := err.(*os.PathError); ok {
+			if perr := (*os.PathError)(nil); errors.As(err, &perr) {
 				err = perr.Err
 			}
 			t.Err(err, wanterr)
@@ -194,8 +197,8 @@ func (tail *testTail) CreateFIFO() {
 	}
 	t := tail.t
 	t.Helper()
-	t.Nil(syscall.Mkfifo(tail.path, 0600)) //nolint:gocritic
-	f, err := os.OpenFile(tail.path, os.O_RDWR, 0600)
+	t.Nil(syscall.Mkfifo(tail.path, 0o600))
+	f, err := os.OpenFile(tail.path, os.O_RDWR, 0o600)
 	t.Nil(err)
 	tail.f = f
 	tail.created = append(tail.created, tail.path)
@@ -241,7 +244,7 @@ func (tail *testTail) Write(s string) {
 func (tail *testTail) tempPath() string {
 	t := tail.t
 	t.Helper()
-	f, err := ioutil.TempFile("", "gotest")
+	f, err := os.CreateTemp("", "gotest")
 	t.Nil(err)
 	t.Nil(f.Close())
 	t.Nil(os.Remove(f.Name()))

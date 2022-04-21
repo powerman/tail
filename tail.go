@@ -3,6 +3,7 @@ package tail
 
 import (
 	"context"
+	"errors"
 	"io"
 	"os"
 	"time"
@@ -19,7 +20,7 @@ import (
 // Unlike `tail` it does not support file truncation. While this can't
 // work reliable, truncate support may be added in the future.
 type Tail struct {
-	ctx         context.Context
+	ctx         context.Context //nolint:containedctx // By design.
 	log         Logger
 	path        string
 	pollDelay   time.Duration
@@ -42,12 +43,14 @@ func Follow(ctx context.Context, log Logger, path string, options ...Option) *Ta
 		pollDelay:   DefaultPollDelay,
 		pollTimeout: DefaultPollTimeout,
 		f:           newTrackedFile(ctx, path),
+		next:        nil,
+		lasterr:     nil,
 	}
 	for _, option := range options {
 		option.apply(t)
 	}
 
-	err := t.f.Open()
+	err := t.f.Open() //nolint:contextcheck // False positive.
 	if err == nil && t.f.Usual() {
 		_, err = t.f.Seek(0, io.SeekEnd)
 		if err != nil {
@@ -77,7 +80,7 @@ func Follow(ctx context.Context, log Logger, path string, options ...Option) *Ta
 //
 // Read must not be called from simultaneous goroutines.
 func (t *Tail) Read(p []byte) (int, error) {
-	if t.lasterr == io.EOF {
+	if errors.Is(t.lasterr, io.EOF) {
 		return 0, t.lasterr
 	}
 
@@ -121,7 +124,7 @@ func (t *Tail) tryOpen(timeoutc <-chan time.Time) error {
 }
 
 func (t *Tail) openNext() (err error) {
-	if t.next == nil && t.f.Detached() {
+	if t.next == nil && t.f.Detached() { //nolint:nestif // TODO
 		t.next = newTrackedFile(t.ctx, t.path)
 		err = unwrap(t.next.Open())
 		if err != nil {
@@ -143,18 +146,18 @@ func (t *Tail) read(timeoutc <-chan time.Time, p []byte) (int, error) {
 
 	n, err := t.f.Read(p)
 	err = unwrap(err)
-	if err == io.EOF && t.next != nil && t.next.Opened() {
+	if errors.Is(err, io.EOF) && t.next != nil && t.next.Opened() {
 		t.f.Close()
 		t.f, t.next = t.next, nil
 		return t.read(timeoutc, p)
 	}
 
-	switch err {
-	case nil:
+	switch {
+	case err == nil:
 		return n, nil
-	case os.ErrClosed:
+	case errors.Is(err, os.ErrClosed):
 		return 0, io.EOF
-	case io.EOF:
+	case errors.Is(err, io.EOF):
 		err = errOpen
 	default:
 		t.log.Printf("tail: error reading %q: %s", t.path, err)
