@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"os"
 	"time"
@@ -13,7 +12,7 @@ import (
 )
 
 func Example() {
-	f, _ := ioutil.TempFile("", "gotest")
+	f, _ := os.CreateTemp("", "gotest")
 	_, _ = f.Write([]byte("first"))
 
 	ctx, cancel := context.WithCancel(context.Background())

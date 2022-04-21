@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"io"
-	"io/ioutil"
 	"os"
 	"strconv"
 	"syscall"
@@ -43,7 +42,7 @@ type testTail struct {
 
 func newTestTail(t *check.C) *testTail {
 	t.Helper()
-	f, err := ioutil.TempFile("", "gotest")
+	f, err := os.CreateTemp("", "gotest")
 	t.Nil(err)
 	tail := &testTail{
 		t:       t,
@@ -245,7 +244,7 @@ func (tail *testTail) Write(s string) {
 func (tail *testTail) tempPath() string {
 	t := tail.t
 	t.Helper()
-	f, err := ioutil.TempFile("", "gotest")
+	f, err := os.CreateTemp("", "gotest")
 	t.Nil(err)
 	t.Nil(f.Close())
 	t.Nil(os.Remove(f.Name()))
