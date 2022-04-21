@@ -300,6 +300,7 @@ func TestRotateSymlink(tt *testing.T) {
 
 	tail.RemoveSymlink()
 	time.Sleep(pollTimeout - pollDelay*5/2)
+	tail.Want(pollDelay*3/2, "", syscall.ENOENT)
 	tail.CreateSymlink()
 	tail.Write("new1.1\nnew1.2\n")
 	tail.Want(pollDelay*3/2, "new1.1\nnew1.2\nold1.1\nold1.2\nnew1.1\nnew1.2\n", nil)
