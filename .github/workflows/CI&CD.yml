@@ -19,7 +19,7 @@ jobs:
         go:
           - '^1.17'
           - '^1.18'
-          - 'tip'
+#           - 'tip'
 
     steps:
       - uses: actions/setup-go@v3
