@@ -332,7 +332,15 @@ func TestErrors(tt *testing.T) {
 	t.Parallel()
 	tail := newTestTail(t)
 
-	t.Nil(os.Chmod(tail.path, 0))
+	// Check if chmod works as expected
+	err := os.Chmod(tail.path, 0)
+	t.Nil(err)
+
+	// Verify file permissions
+	info, err := os.Stat(tail.path)
+	t.Nil(err)
+	t.Logf("File permissions after chmod 0: %v", info.Mode())
+
 	tail.Run()
 
 	tail.Want(pollTimeout-pollDelay/2, "", nil)
