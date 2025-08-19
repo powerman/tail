@@ -203,9 +203,6 @@ func TestRemoveGrow(tt *testing.T) {
 
 func TestRotate(tt *testing.T) {
 	t := check.T(tt)
-	// if runtime.GOOS == "windows" {
-	// 	t.Skip("File rename tests are not stable on Windows due to file locking")
-	// }
 	t.Parallel()
 	tail := newTestTail(t)
 
@@ -245,9 +242,6 @@ func TestRotateAtEOF(tt *testing.T) {
 
 func TestRotateAtEOFGrow(tt *testing.T) {
 	t := check.T(tt)
-	// if runtime.GOOS == "windows" {
-	// 	t.Skip("File rename tests are not stable on Windows due to file locking")
-	// }
 	t.Parallel()
 	tail := newTestTail(t)
 
@@ -286,9 +280,6 @@ func TestSymlink(tt *testing.T) {
 
 func TestRotateSymlink(tt *testing.T) {
 	t := check.T(tt)
-	// if runtime.GOOS == "windows" {
-	// 	t.Skip("File rename tests are not stable on Windows due to file locking")
-	// }
 	t.Parallel()
 	tail := newTestTail(t)
 
