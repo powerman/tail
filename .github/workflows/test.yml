@@ -76,7 +76,6 @@ jobs:
       - name: Run tests
         env:
           PLATFORM: linux/${{ matrix.arch }}${{ matrix.v && format('/{0}', matrix.v) || '' }}
-          GO_TEST_TIME_FACTOR: "10" # Increase timeouts for slow QEMU emulation
         run: |
           mkdir -p ~/go ~/.cache/go-build
           V=$(awk '$1=="toolchain"{v=$2}$1=="go"&&!v{v=$2}END{sub(/^go/,"",v);print v}' go.mod)
@@ -85,7 +84,6 @@ jobs:
             -v "$PWD:/workspace" \
             -v "$HOME/.cache/go-build:/root/.cache/go-build" \
             -v "$HOME/go:/go" \
-            -e "GO_TEST_TIME_FACTOR=$GO_TEST_TIME_FACTOR" \
             "golang:$V" go test ./...
 
   # Basic cross-compile check for rest of release platforms.

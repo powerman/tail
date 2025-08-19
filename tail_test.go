@@ -6,7 +6,6 @@ import (
 	"runtime"
 	"syscall"
 	"testing"
-	"testing/synctest"
 	"time"
 
 	"github.com/powerman/check"
@@ -318,38 +317,34 @@ func TestRotateSymlink(tt *testing.T) {
 func TestErrors(tt *testing.T) {
 	if runtime.GOOS == "windows" {
 		tt.Skip("Permission tests work differently on Windows")
+	} else if os.Getuid() == 0 { // Happens in QEMU/Docker containers used for ARM/ARM64.
+		tt.Skip("Permission tests does not work as root")
 	}
-	synctest.Test(tt, func(tt *testing.T) { //nolint:thelper // False positive.
-		t := check.T(tt)
-		tail := newTestTail(t)
 
-		t.Nil(os.Chmod(tail.path, 0))
+	t := check.T(tt)
+	t.Parallel()
+	tail := newTestTail(t)
 
-		f, err := os.Open(tail.path)
-		t.Log(f, err)
-		t.Nil(f)
-		t.NotNil(err)
+	t.Nil(os.Chmod(tail.path, 0))
+	tail.Run()
 
-		tail.Run()
+	tail.Want(pollTimeout-pollDelay/2, "", nil)
+	tail.Want(pollDelay, "", syscall.EACCES)
 
-		tail.Want(pollTimeout-pollDelay/2, "", nil)
-		tail.Want(pollDelay, "", syscall.EACCES)
+	tail.Remove()
+	tail.Want(pollTimeout-pollDelay/2, "", nil)
+	tail.Want(pollDelay, "", nil)
 
-		tail.Remove()
-		tail.Want(pollTimeout-pollDelay/2, "", nil)
-		tail.Want(pollDelay, "", nil)
+	tail.Create()
+	tail.Want(pollDelay*3/2, "", nil)
+	tail.Remove()
+	tail.Want(pollTimeout-pollDelay/2, "", nil)
+	tail.Want(pollDelay, "", nil)
 
-		tail.Create()
-		tail.Want(pollDelay*3/2, "", nil)
-		tail.Remove()
-		tail.Want(pollTimeout-pollDelay/2, "", nil)
-		tail.Want(pollDelay, "", nil)
-
-		tail.Create()
-		tail.Write("new\n")
-		tail.Want(pollDelay*3/2, "new\n", nil)
-		tail.Remove()
-		tail.Want(pollTimeout-pollDelay, "", nil)
-		tail.Want(pollDelay*3/2, "", syscall.ENOENT)
-	})
+	tail.Create()
+	tail.Write("new\n")
+	tail.Want(pollDelay*3/2, "new\n", nil)
+	tail.Remove()
+	tail.Want(pollTimeout-pollDelay, "", nil)
+	tail.Want(pollDelay*3/2, "", syscall.ENOENT)
 }
