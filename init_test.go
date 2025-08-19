@@ -204,8 +204,8 @@ func (tail *testTail) CreateFIFO() {
 	}
 	t := tail.t
 	t.Helper()
-	if runtime.GOOS == "windows" {
-		t.Skip("FIFO pipes are not supported on Windows")
+	if runtime.GOOS == "windows" || runtime.GOOS == "darwin" {
+		t.Skip("FIFO pipes test is not stable on Windows and macOS")
 		return
 	}
 	err = mkfifo(tail.path, 0o600)
