@@ -79,7 +79,7 @@ jobs:
         run: |
           mkdir -p ~/go ~/.cache/go-build
           V=$(awk '$1=="toolchain"{v=$2}$1=="go"&&!v{v=$2}END{sub(/^go/,"",v);print v}' go.mod)
-          docker run -i --rm --privileged --platform "$PLATFORM" \
+          docker run -i --rm --platform "$PLATFORM" \
             -w /workspace \
             -v "$PWD:/workspace" \
             -v "$HOME/.cache/go-build:/root/.cache/go-build" \
