@@ -6,7 +6,6 @@ import (
 	"io"
 	"os"
 	"strconv"
-	"syscall"
 	"testing"
 	"time"
 
@@ -44,7 +43,7 @@ type testTail struct {
 
 func newTestTail(t *check.C) *testTail {
 	t.Helper()
-	f, err := os.CreateTemp("", "gotest")
+	f, err := createTempFile("", "gotest")
 	t.Nil(err)
 	tail := &testTail{
 		t:       t,
@@ -65,7 +64,8 @@ func (tail *testTail) Run() {
 	if tail.Tail != nil {
 		panic("tail.Run() must be called only once")
 	}
-	ctx, cancel := context.WithCancel(context.Background())
+	tail.t.Cleanup(tail.Close)
+	ctx, cancel := context.WithCancel(tail.t.Context())
 	tail.Cancel = cancel
 	options := []Option{PollDelay(pollDelay), PollTimeout(pollTimeout)}
 	if tail.symlink == "" {
@@ -87,6 +87,7 @@ WAIT_READER:
 	for {
 		select {
 		case <-tail.bufc:
+			// Drain any remaining data.
 		case _, ok := <-tail.errc:
 			if !ok {
 				break WAIT_READER
@@ -190,7 +191,7 @@ func (tail *testTail) Create() {
 	}
 	t := tail.t
 	t.Helper()
-	f, err := os.Create(tail.path)
+	f, err := createFile(tail.path)
 	t.Nil(err)
 	tail.f = f
 	tail.created = append(tail.created, tail.path)
@@ -204,7 +205,7 @@ func (tail *testTail) CreateFIFO() {
 	}
 	t := tail.t
 	t.Helper()
-	t.Nil(syscall.Mkfifo(tail.path, 0o600))
+	t.Nil(mkfifo(tail.path, 0o600))
 	f, err := os.OpenFile(tail.path, os.O_RDWR, 0o600)
 	t.Nil(err)
 	tail.f = f

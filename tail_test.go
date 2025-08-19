@@ -3,6 +3,7 @@ package tail //nolint:testpackage // TODO
 import (
 	"io"
 	"os"
+	"runtime"
 	"syscall"
 	"testing"
 	"time"
@@ -14,19 +15,21 @@ func TestInvalidPath(tt *testing.T) {
 	t := check.T(tt)
 	t.Parallel()
 	tail := newTestTail(t)
-	defer tail.Close()
 
 	tail.path = ""
 	tail.Run()
 	tail.Want(pollTimeout-pollDelay/2, "", nil)
-	tail.Want(pollDelay, "", syscall.ENOENT)
+	if runtime.GOOS == "windows" {
+		tail.Want(pollDelay, "", syscall.Errno(3)) // ERROR_PATH_NOT_FOUND
+	} else {
+		tail.Want(pollDelay, "", syscall.ENOENT)
+	}
 }
 
 func TestNotExists(tt *testing.T) {
 	t := check.T(tt)
 	t.Parallel()
 	tail := newTestTail(t)
-	defer tail.Close()
 
 	tail.Remove()
 	tail.Run()
@@ -39,7 +42,6 @@ func TestNotExistsGrow(tt *testing.T) {
 	t := check.T(tt)
 	t.Parallel()
 	tail := newTestTail(t)
-	defer tail.Close()
 
 	tail.Remove()
 	tail.Run()
@@ -55,7 +57,6 @@ func TestEmpty(tt *testing.T) {
 	t := check.T(tt)
 	t.Parallel()
 	tail := newTestTail(t)
-	defer tail.Close()
 
 	tail.Run()
 
@@ -66,7 +67,6 @@ func TestEmptyGrow(tt *testing.T) {
 	t := check.T(tt)
 	t.Parallel()
 	tail := newTestTail(t)
-	defer tail.Close()
 
 	tail.Run()
 
@@ -78,7 +78,6 @@ func TestEmptyGrowAsync(tt *testing.T) {
 	t := check.T(tt)
 	t.Parallel()
 	tail := newTestTail(t)
-	defer tail.Close()
 
 	tail.Run()
 
@@ -100,7 +99,6 @@ func TestNotEmptyGrow(tt *testing.T) {
 	t := check.T(tt)
 	t.Parallel()
 	tail := newTestTail(t)
-	defer tail.Close()
 
 	tail.Write("old1.1\nold1.2\n")
 	tail.Run()
@@ -116,7 +114,6 @@ func TestNotEmptyGrowBytes(tt *testing.T) {
 	t := check.T(tt)
 	t.Parallel()
 	tail := newTestTail(t)
-	defer tail.Close()
 
 	tail.Write("old\nab")
 	tail.Run()
@@ -131,10 +128,16 @@ func TestNotEmptyGrowBytes(tt *testing.T) {
 }
 
 func TestFIFOGrow(tt *testing.T) {
+	if runtime.GOOS == "windows" {
+		tt.Skip("FIFO pipes is not supported on Windows")
+	}
+	if runtime.GOOS == "darwin" {
+		tt.Skip("FIFO pipes support is broken on macOS")
+	}
+
 	t := check.T(tt)
 	t.Parallel()
 	tail := newTestTail(t)
-	defer tail.Close()
 
 	tail.Remove()
 	tail.CreateFIFO()
@@ -153,7 +156,6 @@ func TestClose(tt *testing.T) {
 	t := check.T(tt)
 	t.Parallel()
 	tail := newTestTail(t)
-	defer tail.Close()
 
 	tail.Write("old1.1\nold1.2\n")
 	tail.Run()
@@ -179,7 +181,6 @@ func TestRenameGrow(tt *testing.T) {
 	t := check.T(tt)
 	t.Parallel()
 	tail := newTestTail(t)
-	defer tail.Close()
 
 	tail.Run()
 
@@ -194,7 +195,6 @@ func TestRemoveGrow(tt *testing.T) {
 	t := check.T(tt)
 	t.Parallel()
 	tail := newTestTail(t)
-	defer tail.Close()
 
 	tail.Run()
 
@@ -209,7 +209,6 @@ func TestRotate(tt *testing.T) {
 	t := check.T(tt)
 	t.Parallel()
 	tail := newTestTail(t)
-	defer tail.Close()
 
 	tail.Run()
 
@@ -233,7 +232,6 @@ func TestRotateAtEOF(tt *testing.T) {
 	t := check.T(tt)
 	t.Parallel()
 	tail := newTestTail(t)
-	defer tail.Close()
 
 	tail.Run()
 
@@ -250,7 +248,6 @@ func TestRotateAtEOFGrow(tt *testing.T) {
 	t := check.T(tt)
 	t.Parallel()
 	tail := newTestTail(t)
-	defer tail.Close()
 
 	tail.Run()
 
@@ -272,7 +269,6 @@ func TestSymlink(tt *testing.T) {
 	t := check.T(tt)
 	t.Parallel()
 	tail := newTestTail(t)
-	defer tail.Close()
 
 	tail.CreateSymlink()
 	tail.Run()
@@ -290,7 +286,6 @@ func TestRotateSymlink(tt *testing.T) {
 	t := check.T(tt)
 	t.Parallel()
 	tail := newTestTail(t)
-	defer tail.Close()
 
 	tail.CreateSymlink()
 	tail.Run()
@@ -314,10 +309,15 @@ func TestRotateSymlink(tt *testing.T) {
 }
 
 func TestErrors(tt *testing.T) {
+	if runtime.GOOS == "windows" {
+		tt.Skip("Permission tests work differently on Windows")
+	} else if os.Getuid() == 0 { // Happens in QEMU/Docker containers used for ARM/ARM64.
+		tt.Skip("Permission tests does not work as root")
+	}
+
 	t := check.T(tt)
 	t.Parallel()
 	tail := newTestTail(t)
-	defer tail.Close()
 
 	t.Nil(os.Chmod(tail.path, 0))
 	tail.Run()

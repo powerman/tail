@@ -25,7 +25,7 @@ func newTrackedFile(ctx context.Context, path string) *trackedFile {
 }
 
 func (f *trackedFile) Open() error {
-	file, err := os.Open(f.path)
+	file, err := openFile(f.path)
 	if err != nil {
 		return err
 	}
