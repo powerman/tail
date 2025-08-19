@@ -4,7 +4,9 @@ package tail
 import (
 	"context"
 	"errors"
+	"fmt"
 	"io"
+	"io/fs"
 	"os"
 	"time"
 )
@@ -146,8 +148,9 @@ func (t *Tail) read(timeoutc <-chan time.Time, p []byte) (int, error) {
 
 	n, err := t.f.Read(p)
 	err = unwrap(err)
-	if n == 0 && err == nil { // MacOS behaviour on FIFO read.
-		err = io.EOF
+	fi, errFI := t.f.Stat()
+	if errFI == nil && fi.Mode()&fs.ModeNamedPipe != 0 {
+		fmt.Println("n, err:", n, err)
 	}
 	if errors.Is(err, io.EOF) && t.next != nil && t.next.Opened() {
 		t.f.Close()
