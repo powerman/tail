@@ -156,6 +156,11 @@ func (tail *testTail) Remove() {
 	}
 	t := tail.t
 	t.Helper()
+	// Close file on Windows to avoid "file being used by another process" error
+	if runtime.GOOS == "windows" && tail.f != nil {
+		tail.f.Close()
+		tail.f = nil
+	}
 	t.Nil(os.Remove(tail.path))
 	for i := range tail.created {
 		if tail.created[i] == tail.path {
@@ -173,6 +178,11 @@ func (tail *testTail) Rename() {
 	}
 	t := tail.t
 	t.Helper()
+	// Close file on Windows to avoid "file being used by another process" error
+	if runtime.GOOS == "windows" && tail.f != nil {
+		tail.f.Close()
+		tail.f = nil
+	}
 	path := tail.tempPath()
 	t.Nil(os.Rename(tail.path, path))
 	for i := range tail.created {
