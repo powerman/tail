@@ -316,11 +316,20 @@ func TestRotateSymlink(tt *testing.T) {
 }
 
 func TestErrors(tt *testing.T) {
+	if runtime.GOOS == "windows" {
+		tt.Skip("Permission tests work differently on Windows")
+	}
 	synctest.Test(tt, func(tt *testing.T) { //nolint:thelper // False positive.
 		t := check.T(tt)
 		tail := newTestTail(t)
 
 		t.Nil(os.Chmod(tail.path, 0))
+
+		f, err := os.Open(tail.path)
+		t.Log(f, err)
+		t.Nil(f)
+		t.NotNil(err)
+
 		tail.Run()
 
 		tail.Want(pollTimeout-pollDelay/2, "", nil)
