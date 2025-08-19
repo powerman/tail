@@ -24,6 +24,9 @@ func TestInvalidPath(tt *testing.T) {
 
 func TestNotExists(tt *testing.T) {
 	t := check.T(tt)
+	if runtime.GOOS == "windows" {
+		t.Skip("File remove operations are not supported on Windows due to file locking")
+	}
 	t.Parallel()
 	tail := newTestTail(t)
 
@@ -36,6 +39,9 @@ func TestNotExists(tt *testing.T) {
 
 func TestNotExistsGrow(tt *testing.T) {
 	t := check.T(tt)
+	if runtime.GOOS == "windows" {
+		t.Skip("File remove operations are not supported on Windows due to file locking")
+	}
 	t.Parallel()
 	tail := newTestTail(t)
 
@@ -188,6 +194,9 @@ func TestRenameGrow(tt *testing.T) {
 
 func TestRemoveGrow(tt *testing.T) {
 	t := check.T(tt)
+	if runtime.GOOS == "windows" {
+		t.Skip("File remove operations are not supported on Windows due to file locking")
+	}
 	t.Parallel()
 	tail := newTestTail(t)
 
@@ -317,6 +326,9 @@ func TestRotateSymlink(tt *testing.T) {
 
 func TestErrors(tt *testing.T) {
 	t := check.T(tt)
+	if runtime.GOOS == "windows" {
+		t.Skip("File remove operations are not supported on Windows due to file locking")
+	}
 	t.Parallel()
 	tail := newTestTail(t)
 
