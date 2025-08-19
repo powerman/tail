@@ -6,6 +6,7 @@ import (
 	"runtime"
 	"syscall"
 	"testing"
+	"testing/synctest"
 	"time"
 
 	"github.com/powerman/check"
@@ -315,31 +316,31 @@ func TestRotateSymlink(tt *testing.T) {
 }
 
 func TestErrors(tt *testing.T) {
-	t := check.T(tt)
-	t.Skip("TestErrors has race condition issues, needs redesign")
-	t.Parallel()
-	tail := newTestTail(t)
+	synctest.Test(tt, func(tt *testing.T) { //nolint:thelper // False positive.
+		t := check.T(tt)
+		tail := newTestTail(t)
 
-	t.Nil(os.Chmod(tail.path, 0))
-	tail.Run()
+		t.Nil(os.Chmod(tail.path, 0))
+		tail.Run()
 
-	tail.Want(pollTimeout-pollDelay/2, "", nil)
-	tail.Want(pollDelay, "", syscall.EACCES)
+		tail.Want(pollTimeout-pollDelay/2, "", nil)
+		tail.Want(pollDelay, "", syscall.EACCES)
 
-	tail.Remove()
-	tail.Want(pollTimeout-pollDelay/2, "", nil)
-	tail.Want(pollDelay, "", nil)
+		tail.Remove()
+		tail.Want(pollTimeout-pollDelay/2, "", nil)
+		tail.Want(pollDelay, "", nil)
 
-	tail.Create()
-	tail.Want(pollDelay*3/2, "", nil)
-	tail.Remove()
-	tail.Want(pollTimeout-pollDelay/2, "", nil)
-	tail.Want(pollDelay, "", nil)
+		tail.Create()
+		tail.Want(pollDelay*3/2, "", nil)
+		tail.Remove()
+		tail.Want(pollTimeout-pollDelay/2, "", nil)
+		tail.Want(pollDelay, "", nil)
 
-	tail.Create()
-	tail.Write("new\n")
-	tail.Want(pollDelay*3/2, "new\n", nil)
-	tail.Remove()
-	tail.Want(pollTimeout-pollDelay, "", nil)
-	tail.Want(pollDelay*3/2, "", syscall.ENOENT)
+		tail.Create()
+		tail.Write("new\n")
+		tail.Want(pollDelay*3/2, "new\n", nil)
+		tail.Remove()
+		tail.Want(pollTimeout-pollDelay, "", nil)
+		tail.Want(pollDelay*3/2, "", syscall.ENOENT)
+	})
 }
