@@ -138,18 +138,6 @@ func TestFIFOGrow(tt *testing.T) {
 
 	tail.Remove()
 	tail.CreateFIFO()
-
-	// On macOS, we need to ensure a writer is available to prevent blocking
-	// when the tail tries to open the FIFO for reading.
-	var keeper *os.File
-	if runtime.GOOS == "darwin" {
-		// Open FIFO for writing to prevent blocking on read-side open
-		var err error
-		keeper, err = os.OpenFile(tail.path, os.O_WRONLY|syscall.O_NONBLOCK, 0)
-		t.Nil(err)
-		t.Cleanup(func() { keeper.Close() })
-	}
-
 	tail.Run()
 
 	go func() {
