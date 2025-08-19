@@ -159,6 +159,9 @@ func (t *Tail) read(timeoutc <-chan time.Time, p []byte) (int, error) {
 		return 0, io.EOF
 	case errors.Is(err, io.EOF):
 		err = errOpen
+	case isWouldBlock(err):
+		// For non-blocking FIFO on macOS, treat EAGAIN/EWOULDBLOCK as temporary
+		err = nil
 	default:
 		t.log.Printf("tail: error reading %q: %s", t.path, err)
 	}
