@@ -3,7 +3,6 @@ package tail
 import (
 	"errors"
 	"os"
-	"syscall"
 )
 
 // Logger is an interface used to log tail state changes.
@@ -27,10 +26,4 @@ func unwrap(err error) error {
 	default:
 		return err
 	}
-}
-
-// isWouldBlock checks if error is EAGAIN or EWOULDBLOCK,
-// which indicates a non-blocking operation would block.
-func isWouldBlock(err error) bool {
-	return errors.Is(err, syscall.EAGAIN) || errors.Is(err, syscall.EWOULDBLOCK)
 }
