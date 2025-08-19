@@ -10,7 +10,7 @@ const (
 
 // Option let you change Tail behaviour.
 type Option interface {
-	apply(*Tail)
+	apply(t *Tail)
 }
 
 type optionFunc func(*Tail)

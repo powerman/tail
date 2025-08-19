@@ -21,13 +21,16 @@ var (
 )
 
 func floatGetenv(name string, def float64) float64 {
-	if v, err := strconv.ParseFloat(os.Getenv(name), 64); err == nil {
+	v, err := strconv.ParseFloat(os.Getenv(name), 64)
+	if err == nil {
 		return v
 	}
 	return def
 }
 
 type testTail struct {
+	*Tail
+
 	t       *check.C
 	f       *os.File
 	path    string
@@ -37,7 +40,6 @@ type testTail struct {
 	created []string
 	opened  []*os.File
 	Cancel  context.CancelFunc
-	*Tail
 }
 
 func newTestTail(t *check.C) *testTail {
@@ -133,7 +135,8 @@ func (tail *testTail) Want(timeout time.Duration, want string, wanterr error) {
 				err = io.ErrClosedPipe
 			}
 			t.Equal(s, want)
-			if perr := (*os.PathError)(nil); errors.As(err, &perr) {
+			var perr *os.PathError
+			if errors.As(err, &perr) {
 				err = perr.Err
 			}
 			t.Err(err, wanterr)
@@ -147,7 +150,8 @@ func (tail *testTail) Want(timeout time.Duration, want string, wanterr error) {
 }
 
 func (tail *testTail) Remove() {
-	if _, err := os.Stat(tail.path); os.IsNotExist(err) {
+	_, err := os.Stat(tail.path)
+	if os.IsNotExist(err) {
 		panic("tail.Remove() or tail.Rename() must not be called before tail.Remove()")
 	}
 	t := tail.t
@@ -163,7 +167,8 @@ func (tail *testTail) Remove() {
 }
 
 func (tail *testTail) Rename() {
-	if _, err := os.Stat(tail.path); os.IsNotExist(err) {
+	_, err := os.Stat(tail.path)
+	if os.IsNotExist(err) {
 		panic("tail.Remove() or tail.Rename() must not be called before tail.Rename()")
 	}
 	t := tail.t
@@ -179,7 +184,8 @@ func (tail *testTail) Rename() {
 }
 
 func (tail *testTail) Create() {
-	if _, err := os.Stat(tail.path); !os.IsNotExist(err) {
+	_, err := os.Stat(tail.path)
+	if !os.IsNotExist(err) {
 		panic("tail.Remove() or tail.Rename() must be called before tail.Create()")
 	}
 	t := tail.t
@@ -192,7 +198,8 @@ func (tail *testTail) Create() {
 }
 
 func (tail *testTail) CreateFIFO() {
-	if _, err := os.Stat(tail.path); !os.IsNotExist(err) {
+	_, err := os.Stat(tail.path)
+	if !os.IsNotExist(err) {
 		panic("tail.Remove() or tail.Rename() must be called before tail.CreateFIFO()")
 	}
 	t := tail.t
@@ -206,7 +213,8 @@ func (tail *testTail) CreateFIFO() {
 }
 
 func (tail *testTail) CreateSymlink() {
-	if _, err := os.Stat(tail.path); os.IsNotExist(err) {
+	_, err := os.Stat(tail.path)
+	if os.IsNotExist(err) {
 		panic("tail.Remove() or tail.Rename() must not be called before tail.CreateSymlink()")
 	}
 	t := tail.t
@@ -219,7 +227,8 @@ func (tail *testTail) CreateSymlink() {
 }
 
 func (tail *testTail) RemoveSymlink() {
-	if _, err := os.Stat(tail.symlink); os.IsNotExist(err) {
+	_, err := os.Stat(tail.symlink)
+	if os.IsNotExist(err) {
 		panic("tail.RemoveSymlink() must not be called before tail.CreateSymlink()")
 	}
 	t := tail.t
@@ -237,7 +246,7 @@ func (tail *testTail) RemoveSymlink() {
 func (tail *testTail) Write(s string) {
 	t := tail.t
 	t.Helper()
-	_, err := tail.f.Write([]byte(s))
+	_, err := tail.f.WriteString(s)
 	t.Nil(err)
 }
 

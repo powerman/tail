@@ -169,9 +169,9 @@ func TestClose(tt *testing.T) {
 	tail.Write("new3\n")
 	tail.Want(pollDelay*2, "", io.ErrClosedPipe) // error from testTail, not from Tail
 
-	_, err := tail.Tail.Read(make([]byte, 8))
+	_, err := tail.Read(make([]byte, 8))
 	t.Err(err, io.EOF)
-	_, err = tail.Tail.Read(nil)
+	_, err = tail.Read(nil)
 	t.Err(err, io.EOF)
 }
 
@@ -262,7 +262,7 @@ func TestRotateAtEOFGrow(tt *testing.T) {
 	tail.Create()
 
 	time.Sleep(pollDelay * 3 / 2)
-	_, err := f.Write([]byte("old2\n"))
+	_, err := f.WriteString("old2\n")
 	t.Nil(err)
 	tail.Write("new1.1\nnew1.2\n")
 	tail.Want(pollDelay*3/2, "new1.1\nnew1.2\n", nil)

@@ -13,7 +13,7 @@ import (
 
 func Example() {
 	f, _ := os.CreateTemp("", "gotest")
-	_, _ = f.Write([]byte("first"))
+	_, _ = f.WriteString("first")
 
 	ctx, cancel := context.WithCancel(context.Background())
 	t := tail.Follow(ctx, tail.LoggerFunc(log.Printf), f.Name(),
@@ -22,11 +22,11 @@ func Example() {
 	go func() {
 		time.Sleep(time.Second) // ensure tail has started
 
-		_, _ = f.Write([]byte("second\n"))
+		_, _ = f.WriteString("second\n")
 		_ = os.Remove(f.Name())
 		time.Sleep(time.Second) // ensure tail notice removed file
 
-		_, _ = f.Write([]byte("third\n"))
+		_, _ = f.WriteString("third\n")
 		f.Close()
 		time.Sleep(time.Second) // ensure tail read file before being cancelled
 
