@@ -129,7 +129,10 @@ func TestNotEmptyGrowBytes(tt *testing.T) {
 
 func TestFIFOGrow(tt *testing.T) {
 	if runtime.GOOS == "windows" {
-		tt.Skip("FIFO pipes test is not supported on Windows")
+		tt.Skip("FIFO pipes is not supported on Windows")
+	}
+	if runtime.GOOS == "darwin" {
+		tt.Skip("FIFO pipes support is broken on macOS")
 	}
 
 	t := check.T(tt)
