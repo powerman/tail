@@ -44,7 +44,7 @@ type testTail struct {
 
 func newTestTail(t *check.C) *testTail {
 	t.Helper()
-	f, err := os.CreateTemp("", "gotest")
+	f, err := createTempFile("", "gotest")
 	t.Nil(err)
 	tail := &testTail{
 		t:       t,
@@ -99,16 +99,7 @@ WAIT_READER:
 		t.Nil(f.Close())
 	}
 	for _, path := range tail.created {
-		if runtime.GOOS == "windows" {
-			// On Windows, files may still be locked even after closing handles
-			// Try to remove but don't fail the test if it doesn't work
-			err := os.Remove(path)
-			if err != nil {
-				t.Logf("Failed to cleanup %s on Windows: %v (this may be expected)", path, err)
-			}
-		} else {
-			t.Nil(os.Remove(path))
-		}
+		t.Nil(os.Remove(path))
 	}
 }
 
@@ -201,7 +192,7 @@ func (tail *testTail) Create() {
 	}
 	t := tail.t
 	t.Helper()
-	f, err := os.Create(tail.path)
+	f, err := createFile(tail.path)
 	t.Nil(err)
 	tail.f = f
 	tail.created = append(tail.created, tail.path)
