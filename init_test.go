@@ -102,7 +102,8 @@ WAIT_READER:
 		if runtime.GOOS == "windows" {
 			// On Windows, files may still be locked even after closing handles
 			// Try to remove but don't fail the test if it doesn't work
-			if err := os.Remove(path); err != nil {
+			err := os.Remove(path)
+			if err != nil {
 				t.Logf("Failed to cleanup %s on Windows: %v (this may be expected)", path, err)
 			}
 		} else {
