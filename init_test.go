@@ -5,7 +5,6 @@ import (
 	"errors"
 	"io"
 	"os"
-	"runtime"
 	"strconv"
 	"testing"
 	"time"
@@ -206,10 +205,6 @@ func (tail *testTail) CreateFIFO() {
 	}
 	t := tail.t
 	t.Helper()
-	if runtime.GOOS == "windows" || runtime.GOOS == "darwin" {
-		t.Skip("FIFO pipes test is not stable on Windows and macOS")
-		return
-	}
 	t.Nil(mkfifo(tail.path, 0o600))
 	f, err := os.OpenFile(tail.path, os.O_RDWR, 0o600)
 	t.Nil(err)

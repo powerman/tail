@@ -128,10 +128,11 @@ func TestNotEmptyGrowBytes(tt *testing.T) {
 }
 
 func TestFIFOGrow(tt *testing.T) {
-	t := check.T(tt)
 	if runtime.GOOS == "windows" || runtime.GOOS == "darwin" {
-		t.Skip("FIFO pipes test is not stable on Windows and macOS")
+		tt.Skip("FIFO pipes test is not stable on Windows and macOS")
 	}
+
+	t := check.T(tt)
 	t.Parallel()
 	tail := newTestTail(t)
 
