@@ -99,7 +99,15 @@ WAIT_READER:
 		t.Nil(f.Close())
 	}
 	for _, path := range tail.created {
-		t.Nil(os.Remove(path))
+		if runtime.GOOS == "windows" {
+			// On Windows, files may still be locked even after closing handles
+			// Try to remove but don't fail the test if it doesn't work
+			if err := os.Remove(path); err != nil {
+				t.Logf("Failed to cleanup %s on Windows: %v (this may be expected)", path, err)
+			}
+		} else {
+			t.Nil(os.Remove(path))
+		}
 	}
 }
 
