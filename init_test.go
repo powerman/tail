@@ -210,8 +210,7 @@ func (tail *testTail) CreateFIFO() {
 		t.Skip("FIFO pipes test is not stable on Windows and macOS")
 		return
 	}
-	err = mkfifo(tail.path, 0o600)
-	t.Nil(err)
+	t.Nil(mkfifo(tail.path, 0o600))
 	f, err := os.OpenFile(tail.path, os.O_RDWR, 0o600)
 	t.Nil(err)
 	tail.f = f

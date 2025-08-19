@@ -20,7 +20,6 @@ func TestInvalidPath(tt *testing.T) {
 	tail.Run()
 	tail.Want(pollTimeout-pollDelay/2, "", nil)
 	if runtime.GOOS == "windows" {
-		// Windows has different error message for empty path
 		tail.Want(pollDelay, "", syscall.Errno(3)) // ERROR_PATH_NOT_FOUND
 	} else {
 		tail.Want(pollDelay, "", syscall.ENOENT)
