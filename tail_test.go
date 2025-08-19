@@ -3,6 +3,7 @@ package tail //nolint:testpackage // TODO
 import (
 	"io"
 	"os"
+	"runtime"
 	"syscall"
 	"testing"
 	"time"
@@ -132,6 +133,9 @@ func TestNotEmptyGrowBytes(tt *testing.T) {
 
 func TestFIFOGrow(tt *testing.T) {
 	t := check.T(tt)
+	if runtime.GOOS == "windows" {
+		t.Skip("FIFO pipes are not supported on Windows")
+	}
 	t.Parallel()
 	tail := newTestTail(t)
 	defer tail.Close()

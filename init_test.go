@@ -5,6 +5,7 @@ import (
 	"errors"
 	"io"
 	"os"
+	"runtime"
 	"strconv"
 	"syscall"
 	"testing"
@@ -204,6 +205,10 @@ func (tail *testTail) CreateFIFO() {
 	}
 	t := tail.t
 	t.Helper()
+	if runtime.GOOS == "windows" {
+		t.Skip("FIFO pipes are not supported on Windows")
+		return
+	}
 	t.Nil(syscall.Mkfifo(tail.path, 0o600))
 	f, err := os.OpenFile(tail.path, os.O_RDWR, 0o600)
 	t.Nil(err)
