@@ -15,7 +15,6 @@ func TestInvalidPath(tt *testing.T) {
 	t := check.T(tt)
 	t.Parallel()
 	tail := newTestTail(t)
-	defer tail.Close()
 
 	tail.path = ""
 	tail.Run()
@@ -27,7 +26,6 @@ func TestNotExists(tt *testing.T) {
 	t := check.T(tt)
 	t.Parallel()
 	tail := newTestTail(t)
-	defer tail.Close()
 
 	tail.Remove()
 	tail.Run()
@@ -40,7 +38,6 @@ func TestNotExistsGrow(tt *testing.T) {
 	t := check.T(tt)
 	t.Parallel()
 	tail := newTestTail(t)
-	defer tail.Close()
 
 	tail.Remove()
 	tail.Run()
@@ -56,7 +53,6 @@ func TestEmpty(tt *testing.T) {
 	t := check.T(tt)
 	t.Parallel()
 	tail := newTestTail(t)
-	defer tail.Close()
 
 	tail.Run()
 
@@ -67,7 +63,6 @@ func TestEmptyGrow(tt *testing.T) {
 	t := check.T(tt)
 	t.Parallel()
 	tail := newTestTail(t)
-	defer tail.Close()
 
 	tail.Run()
 
@@ -79,7 +74,6 @@ func TestEmptyGrowAsync(tt *testing.T) {
 	t := check.T(tt)
 	t.Parallel()
 	tail := newTestTail(t)
-	defer tail.Close()
 
 	tail.Run()
 
@@ -101,7 +95,6 @@ func TestNotEmptyGrow(tt *testing.T) {
 	t := check.T(tt)
 	t.Parallel()
 	tail := newTestTail(t)
-	defer tail.Close()
 
 	tail.Write("old1.1\nold1.2\n")
 	tail.Run()
@@ -117,7 +110,6 @@ func TestNotEmptyGrowBytes(tt *testing.T) {
 	t := check.T(tt)
 	t.Parallel()
 	tail := newTestTail(t)
-	defer tail.Close()
 
 	tail.Write("old\nab")
 	tail.Run()
@@ -138,7 +130,6 @@ func TestFIFOGrow(tt *testing.T) {
 	}
 	t.Parallel()
 	tail := newTestTail(t)
-	defer tail.Close()
 
 	tail.Remove()
 	tail.CreateFIFO()
@@ -157,7 +148,6 @@ func TestClose(tt *testing.T) {
 	t := check.T(tt)
 	t.Parallel()
 	tail := newTestTail(t)
-	defer tail.Close()
 
 	tail.Write("old1.1\nold1.2\n")
 	tail.Run()
@@ -186,7 +176,6 @@ func TestRenameGrow(tt *testing.T) {
 	}
 	t.Parallel()
 	tail := newTestTail(t)
-	defer tail.Close()
 
 	tail.Run()
 
@@ -201,7 +190,6 @@ func TestRemoveGrow(tt *testing.T) {
 	t := check.T(tt)
 	t.Parallel()
 	tail := newTestTail(t)
-	defer tail.Close()
 
 	tail.Run()
 
@@ -219,7 +207,6 @@ func TestRotate(tt *testing.T) {
 	}
 	t.Parallel()
 	tail := newTestTail(t)
-	defer tail.Close()
 
 	tail.Run()
 
@@ -246,7 +233,6 @@ func TestRotateAtEOF(tt *testing.T) {
 	}
 	t.Parallel()
 	tail := newTestTail(t)
-	defer tail.Close()
 
 	tail.Run()
 
@@ -266,7 +252,6 @@ func TestRotateAtEOFGrow(tt *testing.T) {
 	}
 	t.Parallel()
 	tail := newTestTail(t)
-	defer tail.Close()
 
 	tail.Run()
 
@@ -288,7 +273,6 @@ func TestSymlink(tt *testing.T) {
 	t := check.T(tt)
 	t.Parallel()
 	tail := newTestTail(t)
-	defer tail.Close()
 
 	tail.CreateSymlink()
 	tail.Run()
@@ -309,7 +293,6 @@ func TestRotateSymlink(tt *testing.T) {
 	}
 	t.Parallel()
 	tail := newTestTail(t)
-	defer tail.Close()
 
 	tail.CreateSymlink()
 	tail.Run()
@@ -336,7 +319,6 @@ func TestErrors(tt *testing.T) {
 	t := check.T(tt)
 	t.Parallel()
 	tail := newTestTail(t)
-	defer tail.Close()
 
 	t.Nil(os.Chmod(tail.path, 0))
 	tail.Run()

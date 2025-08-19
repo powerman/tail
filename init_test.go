@@ -65,7 +65,8 @@ func (tail *testTail) Run() {
 	if tail.Tail != nil {
 		panic("tail.Run() must be called only once")
 	}
-	ctx, cancel := context.WithCancel(context.Background())
+	tail.t.Cleanup(tail.Close)
+	ctx, cancel := context.WithCancel(tail.t.Context())
 	tail.Cancel = cancel
 	options := []Option{PollDelay(pollDelay), PollTimeout(pollTimeout)}
 	if tail.symlink == "" {
@@ -87,6 +88,7 @@ WAIT_READER:
 	for {
 		select {
 		case <-tail.bufc:
+			// Drain any remaining data.
 		case _, ok := <-tail.errc:
 			if !ok {
 				break WAIT_READER
