@@ -146,6 +146,9 @@ func (t *Tail) read(timeoutc <-chan time.Time, p []byte) (int, error) {
 
 	n, err := t.f.Read(p)
 	err = unwrap(err)
+	if n == 0 && err == nil { // MacOS behaviour on FIFO read.
+		err = io.EOF
+	}
 	if errors.Is(err, io.EOF) && t.next != nil && t.next.Opened() {
 		t.f.Close()
 		t.f, t.next = t.next, nil
