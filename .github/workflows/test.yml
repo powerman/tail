@@ -76,7 +76,7 @@ jobs:
       - name: Run tests
         env:
           PLATFORM: linux/${{ matrix.arch }}${{ matrix.v && format('/{0}', matrix.v) || '' }}
-          GO_TEST_TIME_FACTOR: "3"  # Increase timeouts for slow QEMU emulation
+          GO_TEST_TIME_FACTOR: "10" # Increase timeouts for slow QEMU emulation
         run: |
           mkdir -p ~/go ~/.cache/go-build
           V=$(awk '$1=="toolchain"{v=$2}$1=="go"&&!v{v=$2}END{sub(/^go/,"",v);print v}' go.mod)
