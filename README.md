@@ -1,10 +1,12 @@
 # Go package tail implements behaviour of `tail` tool
 
-[![Go Reference](https://pkg.go.dev/badge/github.com/powerman/tail.svg)](https://pkg.go.dev/github.com/powerman/tail)
-[![CI/CD](https://github.com/powerman/tail/workflows/CI/CD/badge.svg?event=push)](https://github.com/powerman/tail/actions?query=workflow%3ACI%2FCD)
-[![Coverage Status](https://coveralls.io/repos/github/powerman/tail/badge.svg?branch=master)](https://coveralls.io/github/powerman/tail?branch=master)
+[![License MIT](https://img.shields.io/badge/license-MIT-royalblue.svg)](LICENSE)
+[![Go version](https://img.shields.io/github/go-mod/go-version/powerman/tail?color=blue)](https://go.dev/)
+[![Test](https://img.shields.io/github/actions/workflow/status/powerman/tail/test.yml?label=test)](https://github.com/powerman/tail/actions/workflows/test.yml)
+[![Coverage Status](https://raw.githubusercontent.com/powerman/tail/gh-badges/coverage.svg)](https://github.com/powerman/tail/actions/workflows/test.yml)
 [![Go Report Card](https://goreportcard.com/badge/github.com/powerman/tail)](https://goreportcard.com/report/github.com/powerman/tail)
-[![Release](https://img.shields.io/github/v/release/powerman/tail)](https://github.com/powerman/tail/releases/latest)
+[![Release](https://img.shields.io/github/v/release/powerman/tail?color=blue)](https://github.com/powerman/tail/releases/latest)
+[![Go Reference](https://pkg.go.dev/badge/github.com/powerman/tail.svg)](https://pkg.go.dev/github.com/powerman/tail)
 
 Go package tail implements behaviour of `tail -n 0 -F path` to follow
 rotated log files using polling.
