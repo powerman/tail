@@ -35,8 +35,9 @@ func (f *trackedFile) Open() error {
 		return err
 	}
 
-	// Make it possible to interrupt ff.Read(), which may
+	// Make it possible to interrupt f.Read(), which may
 	// block when reading from FIFO or file mounted by network.
+	// To make this work with FIFO we need to open it with O_NONBLOCK.
 	ctx, cancel := context.WithCancel(f.ctx)
 	go func() {
 		<-ctx.Done()
