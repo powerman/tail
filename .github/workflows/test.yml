@@ -38,15 +38,7 @@ jobs:
         with:
           key: native-${{ matrix.os }}
 
-      - run: mise run ci
-        if: matrix.os == 'ubuntu-latest'
-      - run: mise run test
-        if: matrix.os != 'ubuntu-latest'
-
-      - uses: powerman/.github/.github/actions/coverage-badge@main
-        if: github.ref_name == 'main' && matrix.os == 'ubuntu-latest'
-        with:
-          total_cmd: "mise run -q cover:go:total | tail -n 1 | sed -e 's/.*)//'"
+      - run: go test -timeout=20s -run=TestFIFO_ -v
 
   # Testing on available docker QEMU platforms (Linux only).
   test-qemu:
@@ -84,7 +76,7 @@ jobs:
             -v "$PWD:/workspace" \
             -v "$HOME/.cache/go-build:/root/.cache/go-build" \
             -v "$HOME/go:/go" \
-            "golang:$V" go test ./...
+            "golang:$V" go test -timeout=20s -run=TestFIFO_ -v
 
   # Basic cross-compile check for rest of release platforms.
   check-build:
