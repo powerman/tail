@@ -110,6 +110,21 @@ func TestNotEmptyGrow(tt *testing.T) {
 	tail.Want(pollDelay*3/2, "new1.1\nnew1.2\nnew2\n", nil)
 }
 
+func TestNotEmptyWhence(tt *testing.T) {
+	t := check.T(tt)
+	t.Parallel()
+	tail := newTestTail(t)
+
+	tail.Write("old1.1\nold1.2\n")
+	tail.Run(Whence(io.SeekStart))
+
+	tail.Want(pollTimeout+pollDelay/2, "old1.1\nold1.2\n", nil)
+
+	tail.Write("new1.1\nnew1.2\n")
+	tail.Write("new2\n")
+	tail.Want(pollDelay*3/2, "new1.1\nnew1.2\nnew2\n", nil)
+}
+
 func TestNotEmptyGrowBytes(tt *testing.T) {
 	t := check.T(tt)
 	t.Parallel()

@@ -27,3 +27,11 @@ func PollDelay(d time.Duration) Option {
 func PollTimeout(d time.Duration) Option {
 	return optionFunc(func(t *Tail) { t.pollTimeout = d })
 }
+
+// Whence lets you change where you want to start with tailing the file.
+// Default is io.SeekEnd, which means start from the end of the file.
+// Only io.SeekStart and io.SeekEnd are supported.
+// Affects only the file opened by Follow (if exists), not the next files (opened while Read).
+func Whence(w int) Option {
+	return optionFunc(func(t *Tail) { t.whence = w })
+}

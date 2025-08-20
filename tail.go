@@ -28,6 +28,7 @@ type Tail struct {
 	f           *trackedFile
 	next        *trackedFile
 	lasterr     error
+	whence      int
 }
 
 // Follow starts tracking the path using polling.
@@ -45,6 +46,7 @@ func Follow(ctx context.Context, log Logger, path string, options ...Option) *Ta
 		f:           newTrackedFile(ctx, path),
 		next:        nil,
 		lasterr:     nil,
+		whence:      io.SeekEnd,
 	}
 	for _, option := range options {
 		option.apply(t)
@@ -52,7 +54,7 @@ func Follow(ctx context.Context, log Logger, path string, options ...Option) *Ta
 
 	err := t.f.Open() //nolint:contextcheck // False positive.
 	if err == nil && t.f.Usual() {
-		_, err = t.f.Seek(0, io.SeekEnd)
+		_, err = t.f.Seek(0, t.whence)
 		if err != nil {
 			t.f.Close()
 		}
