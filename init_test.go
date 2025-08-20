@@ -60,14 +60,14 @@ func newTestTail(t *check.C) *testTail {
 	return tail
 }
 
-func (tail *testTail) Run() {
+func (tail *testTail) Run(options ...Option) {
 	if tail.Tail != nil {
 		panic("tail.Run() must be called only once")
 	}
 	tail.t.Cleanup(tail.Close)
 	ctx, cancel := context.WithCancel(tail.t.Context())
 	tail.Cancel = cancel
-	options := []Option{PollDelay(pollDelay), PollTimeout(pollTimeout)}
+	options = append([]Option{PollDelay(pollDelay), PollTimeout(pollTimeout)}, options...)
 	if tail.symlink == "" {
 		tail.Tail = Follow(ctx, LoggerFunc(tail.t.Logf), tail.path, options...)
 	} else {
