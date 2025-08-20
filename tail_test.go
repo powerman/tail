@@ -351,6 +351,6 @@ func TestErrors(tt *testing.T) {
 	tail.Write("new\n")
 	tail.Want(pollDelay*3/2, "new\n", nil)
 	tail.Remove()
-	tail.Want(pollTimeout-pollDelay, "", nil)
-	tail.Want(pollDelay*3/2, "", syscall.ENOENT)
+	tail.Want(pollTimeout-pollDelay*2, "", nil)
+	tail.Want(pollDelay*3, "", syscall.ENOENT)
 }
