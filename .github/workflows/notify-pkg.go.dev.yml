@@ -1,0 +1,17 @@
+name: Notify pkg.go.dev
+
+on:
+  push:
+    tags: [v*]
+
+jobs:
+  notify:
+    timeout-minutes: 5
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Trigger pkg.go.dev update
+        run: |
+          ver=$(grep '^module ' go.mod | awk '{print $2}')
+          curl "https://proxy.golang.org/${ver}/@v/${GITHUB_REF#refs/tags/}.info"
