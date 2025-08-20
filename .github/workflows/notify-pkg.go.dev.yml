@@ -13,5 +13,6 @@ jobs:
 
       - name: Trigger pkg.go.dev update
         run: |
-          ver=$(grep '^module ' go.mod | awk '{print $2}')
-          curl "https://proxy.golang.org/${ver}/@v/${GITHUB_REF#refs/tags/}.info"
+          MOD=$(grep '^module ' go.mod | awk '{print $2}')
+          VERSION="${GITHUB_REF#refs/tags/}"
+          curl -X POST "https://pkg.go.dev/fetch/${MOD}@${VERSION}"
