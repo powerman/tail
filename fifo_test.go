@@ -83,7 +83,10 @@ func writeAndClose(t *testing.T, path string, id string, messages ...string) {
 }
 
 func openFIFOForReadNonblock(path string) (*os.File, error) {
-	fd, err := unix.Open(path, unix.O_RDONLY|unix.O_NONBLOCK, 0)
+	// Open the FIFO in read-write non-blocking mode:
+	// - O_RDWR ensures we never get EOF when reading because at least one writer is present.
+	// - O_NONBLOCK is required to have Close() interrupt the Read() call.
+	fd, err := unix.Open(path, unix.O_RDWR|unix.O_NONBLOCK, 0)
 	if err != nil {
 		return nil, err
 	}
@@ -100,8 +103,13 @@ func read(ctx context.Context, t *testing.T, path string, done chan<- struct{}) 
 		logWithTime(t, "%s: Error opening FIFO for reading: %s", id, err)
 		return
 	}
-	defer f.Close()
 	logWithTime(t, "%s: Opened FIFO for reading in non-blocking mode", id)
+
+	go func() {
+		<-ctx.Done()
+		logWithTime(t, "%s: Context done, closing FIFO reader", id)
+		f.Close()
+	}()
 
 	buf := make([]byte, 1024)
 	for {
@@ -110,9 +118,11 @@ func read(ctx context.Context, t *testing.T, path string, done chan<- struct{}) 
 			logWithTime(t, "%s: Read interrupted by context", id)
 			return
 		default:
-			f.SetReadDeadline(time.Now().Add(step / 4))
 			n, err := f.Read(buf)
 			switch {
+			case errors.Is(err, os.ErrClosed):
+				logWithTime(t, "%s: FIFO reader closed", id)
+				return
 			case os.IsTimeout(err):
 			case errors.Is(err, syscall.EAGAIN) || errors.Is(err, syscall.EWOULDBLOCK):
 				time.Sleep(step / 4)
