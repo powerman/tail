@@ -51,9 +51,11 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      - run: go version || true
-
       - uses: actions/setup-go@v5
+        # - macOS has no Go installed.
+        # - Windows has Go but also it has issue with slow cache unpack.
+        # - Ubuntu has Go but needs cache.
+        if: matrix.os != 'windows-latest' && matrix.os != 'windows-11-arm'
         with:
           go-version-file: 'go.mod'
 
