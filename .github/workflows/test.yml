@@ -23,7 +23,7 @@ jobs:
         include:
           - {os: ubuntu-latest} # Linux AMD64
           - {os: ubuntu-24.04-arm} # Linux ARM64
-          - {os: macos-14-large} # macOS AMD64
+          - {os: macos-13} # macOS AMD64
           - {os: macos-latest} # macOS ARM64
           - {os: windows-latest} # Windows AMD64
           - {os: windows-11-arm} # Windows ARM64
