@@ -51,11 +51,15 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
+      - run: go version || true
+
       - uses: actions/setup-go@v5
         with:
           go-version-file: 'go.mod'
 
       - run: go version
+
+      - run: go mod download
 
       - run: go test -timeout=60s -race ./...
         if: matrix.os != 'windows-11-arm'
@@ -73,6 +77,8 @@ jobs:
           - {arch: riscv64}
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    env:
+      PLATFORM: linux/${{ matrix.arch }}${{ matrix.v && format('/{0}', matrix.v) || '' }}
 
     steps:
       - uses: actions/checkout@v5
@@ -89,18 +95,24 @@ jobs:
         with:
           key: qemu-${{ matrix.arch }}${{ matrix.v && format('-{0}', matrix.v) || '' }}
 
+      - name: Detect Go version
+        run: |
+          V=$(awk '$1=="toolchain"{v=$2}$1=="go"&&!v{v=$2}END{sub(/^go/,"",v);print v}' go.mod)
+          echo "IMAGE=golang:${V}-alpine" >> "$GITHUB_ENV"
+
+      - name: Download Docker image
+        run: |
+          docker pull --platform "$PLATFORM" "$IMAGE"
+
       - name: Run tests
-        env:
-          PLATFORM: linux/${{ matrix.arch }}${{ matrix.v && format('/{0}', matrix.v) || '' }}
         run: |
           mkdir -p ~/go ~/.cache/go-build
-          V=$(awk '$1=="toolchain"{v=$2}$1=="go"&&!v{v=$2}END{sub(/^go/,"",v);print v}' go.mod)
           docker run -i --rm --platform "$PLATFORM" \
             -w /workspace \
             -v "$PWD:/workspace" \
             -v "$HOME/.cache/go-build:/root/.cache/go-build" \
             -v "$HOME/go:/go" \
-            "golang:${V}-alpine" go test -timeout=60s ./...
+            "$IMAGE" sh -c 'time go mod download && go test -timeout=60s ./...'
 
   # Aggregate job for branch protection.
   test:
