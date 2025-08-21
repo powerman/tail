@@ -59,6 +59,11 @@ jobs:
         with:
           go-version-file: 'go.mod'
 
+      - uses: powerman/.github/.github/actions/cache-go-and-tools@main
+        if: matrix.os == 'windows-latest' || matrix.os == 'windows-11-arm'
+        with:
+          key: native-${{ matrix.os }}
+
       - run: go version
 
       - run: go mod download
