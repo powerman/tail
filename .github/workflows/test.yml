@@ -64,9 +64,9 @@ jobs:
       #   with:
       #     key: native-${{ matrix.os }}
 
-      - run: go version
-
-      - run: go mod download
+      # - run: go version
+      #
+      # - run: go mod download
 
       - run: go test -timeout=60s -race ./...
         if: matrix.os != 'windows-11-arm'
