@@ -22,9 +22,11 @@ jobs:
       matrix:
         include:
           - {os: ubuntu-latest} # Linux AMD64
-          - {os: macos-13} # macOS Intel - too costly for private repo
-          - {os: macos-latest} # macOS ARM64 - too costly for private repo
+          - {os: ubuntu-24.04-arm} # Linux ARM64
+          - {os: macos-latest-large} # macOS AMD64
+          - {os: macos-latest} # macOS ARM64
           - {os: windows-latest} # Windows AMD64
+          - {os: windows-11-arm} # Windows ARM64
     runs-on: ${{ matrix.os }}
     timeout-minutes: 10
 
@@ -37,6 +39,8 @@ jobs:
       - uses: powerman/.github/.github/actions/cache-go-and-tools@main
         with:
           key: native-${{ matrix.os }}
+
+      - run: go version
 
       - run: mise run ci
         if: matrix.os == 'ubuntu-latest'
@@ -53,7 +57,6 @@ jobs:
     strategy:
       matrix:
         include:
-          - {arch: arm64}
           - {arch: arm, v: v7}
           - {arch: ppc64le}
           - {arch: s390x}

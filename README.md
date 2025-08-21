@@ -10,7 +10,7 @@
 
 ![Linux | amd64 arm64 armv7 ppc64le s390x riscv64](https://img.shields.io/badge/Linux-amd64%20arm64%20armv7%20ppc64le%20s390x%20riscv64-royalblue)
 ![macOS | amd64 arm64](https://img.shields.io/badge/macOS-amd64%20arm64-royalblue)
-![Windows | amd64](https://img.shields.io/badge/Windows-amd64-royalblue)
+![Windows | amd64 arm64](https://img.shields.io/badge/Windows-amd64%20arm64-royalblue)
 
 Go package tail implements behaviour of `tail -n 0 -F path` to follow
 rotated log files using polling.
