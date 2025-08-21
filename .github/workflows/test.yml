@@ -55,6 +55,9 @@ jobs:
         include:
           - {arch: arm64}
           - {arch: arm, v: v7}
+          - {arch: ppc64le}
+          - {arch: s390x}
+          - {arch: riscv64}
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
@@ -86,35 +89,9 @@ jobs:
             -v "$HOME/go:/go" \
             "golang:$V" go test ./...
 
-  # Basic cross-compile check for rest of release platforms.
-  check-build:
-    strategy:
-      matrix:
-        include:
-          # - {goos: darwin, goarch: amd64} # macOS Intel - cheap alternative for private repo
-          # - {goos: darwin, goarch: arm64} # macOS ARM64 - cheap alternative for private repo
-          - {goos: windows, goarch: arm64} # Windows ARM64
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-
-    steps:
-      - uses: actions/checkout@v5
-
-      - uses: jdx/mise-action@v3
-
-      - uses: powerman/.github/.github/actions/cache-go-and-tools@main
-        with:
-          key: build
-
-      - name: Cross-compile
-        env:
-          GOOS: ${{ matrix.goos }}
-          GOARCH: ${{ matrix.goarch }}
-        run: go build ./...
-
   # Aggregate job for branch protection.
   test:
-    needs: [test-native, test-qemu, check-build]
+    needs: [test-native, test-qemu]
     runs-on: ubuntu-latest
     if: always()
     steps:
