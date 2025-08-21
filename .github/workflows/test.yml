@@ -100,7 +100,7 @@ jobs:
             -v "$PWD:/workspace" \
             -v "$HOME/.cache/go-build:/root/.cache/go-build" \
             -v "$HOME/go:/go" \
-            "golang:$V" go test -timeout=60s ./...
+            "golang:${V}-alpine" go test -timeout=60s ./...
 
   # Aggregate job for branch protection.
   test:
