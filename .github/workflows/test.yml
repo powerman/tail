@@ -55,7 +55,7 @@ jobs:
         # - macOS has no Go installed.
         # - Windows has Go but also it has issue with slow cache unpack.
         # - Ubuntu has Go but needs cache.
-        if: matrix.os != 'windows-latest' && matrix.os != 'windows-11-arm'
+        # if: matrix.os != 'windows-latest' && matrix.os != 'windows-11-arm'
         with:
           go-version-file: 'go.mod'
 
@@ -64,9 +64,9 @@ jobs:
       #   with:
       #     key: native-${{ matrix.os }}
 
-      # - run: go version
-      #
-      # - run: go mod download
+      - run: go version
+
+      - run: go mod download
 
       - run: go test -timeout=60s -race ./...
         if: matrix.os != 'windows-11-arm'
