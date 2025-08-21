@@ -1,6 +1,7 @@
 name: Notify pkg.go.dev
 
 on:
+  workflow_dispatch:
   push:
     tags: [v*]
 
