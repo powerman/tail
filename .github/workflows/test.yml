@@ -58,6 +58,9 @@ jobs:
       - run: go version
 
       - run: go test -timeout=60s -race ./...
+        if: matrix.os != 'windows-11-arm'
+      - run: go test -timeout=60s ./...
+        if: matrix.os == 'windows-11-arm'
 
   # Testing on available docker QEMU platforms (Linux only).
   qemu:
