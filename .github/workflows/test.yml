@@ -16,12 +16,30 @@ permissions:
   contents: write # To update gh-badges branch.
 
 jobs:
+  main:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: jdx/mise-action@v3
+      - run: git reset --hard # Work around https://github.com/jdx/mise/discussions/5910.
+
+      - uses: powerman/.github/.github/actions/cache-go-and-tools@main
+
+      - run: mise run ci
+
+      - uses: powerman/.github/.github/actions/coverage-badge@main
+        if: github.ref_name == 'main'
+        with:
+          total_cmd: "mise run -q cover:go:total | tail -n 1 | sed -e 's/.*)//'"
+
   # Testing on available native platforms.
-  test-native:
+  native:
     strategy:
       matrix:
         include:
-          - {os: ubuntu-latest} # Linux AMD64
           - {os: ubuntu-24.04-arm} # Linux ARM64
           - {os: macos-13} # macOS AMD64
           - {os: macos-latest} # macOS ARM64
@@ -33,27 +51,16 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      - uses: jdx/mise-action@v3
-      - run: git reset --hard # Work around https://github.com/jdx/mise/discussions/5910.
-
-      - uses: powerman/.github/.github/actions/cache-go-and-tools@main
+      - uses: actions/setup-go@v5
         with:
-          key: native-${{ matrix.os }}
+          go-version-file: 'go.mod'
 
       - run: go version
 
-      - run: mise run ci
-        if: matrix.os == 'ubuntu-latest'
-      - run: mise run test
-        if: matrix.os != 'ubuntu-latest'
-
-      - uses: powerman/.github/.github/actions/coverage-badge@main
-        if: github.ref_name == 'main' && matrix.os == 'ubuntu-latest'
-        with:
-          total_cmd: "mise run -q cover:go:total | tail -n 1 | sed -e 's/.*)//'"
+      - run: go test -timeout=60s -race ./...
 
   # Testing on available docker QEMU platforms (Linux only).
-  test-qemu:
+  qemu:
     strategy:
       matrix:
         include:
@@ -90,11 +97,11 @@ jobs:
             -v "$PWD:/workspace" \
             -v "$HOME/.cache/go-build:/root/.cache/go-build" \
             -v "$HOME/go:/go" \
-            "golang:$V" go test ./...
+            "golang:$V" go test -timeout=60s ./...
 
   # Aggregate job for branch protection.
   test:
-    needs: [test-native, test-qemu]
+    needs: [main, native, qemu]
     runs-on: ubuntu-latest
     if: always()
     steps:
