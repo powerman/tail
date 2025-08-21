@@ -15,4 +15,5 @@ jobs:
         run: |
           MOD=$(grep '^module ' go.mod | awk '{print $2}')
           VERSION="${GITHUB_REF#refs/tags/}"
-          curl -X POST "https://pkg.go.dev/fetch/${MOD}@${VERSION}"
+          URL="https://pkg.go.dev/fetch/${MOD}@${VERSION}"
+          curl --fail-with-body --max-time 10 --retry 5 --retry-connrefused -X POST "$URL"
