@@ -4,7 +4,7 @@ go 1.24.6
 
 require (
 	github.com/powerman/check v1.9.0
-	golang.org/x/sys v0.37.0
+	golang.org/x/sys v0.40.0
 )
 
 require (
