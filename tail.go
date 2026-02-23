@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-// Tail is an io.Reader with `tail -n 0 -F path` behaviour.
+// Tail is an [io.Reader] with `tail -n 0 -F path` behaviour.
 //
 // Unlike `tail` it does track renamed/removed file contents up to the
 // moment new file will be created with original name - this ensure no
@@ -72,13 +72,13 @@ func Follow(ctx context.Context, log Logger, path string, options ...Option) *Ta
 //
 // Returned data is not guaranteed to contain full lines of text.
 //
-// If Read returns any error except io.EOF, then following Read will
-// return either some data or io.EOF.
+// If Read returns any error except [io.EOF], then following Read will
+// return either some data or [io.EOF].
 //
 // Read may return 0, nil only if len(p) == 0.
 //
-// Read will return io.EOF only after cancelling ctx.
-// Following Read will always return io.EOF.
+// Read will return [io.EOF] only after cancelling ctx.
+// Following Read will always return [io.EOF].
 //
 // Read must not be called from simultaneous goroutines.
 func (t *Tail) Read(p []byte) (int, error) {
