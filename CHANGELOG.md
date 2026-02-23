@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.5] - 2026-02-23
+
+### 📦️ Dependencies
+
+- **(deps)** Bump golang.org/x/sys from 0.35.0 to 0.36.0 by @dependabot[bot] in [#51]
+- **(deps)** Bump golang.org/x/sys from 0.36.0 to 0.37.0 by @dependabot[bot] in [#52]
+
+[0.2.5]: https://github.com/powerman/tail/compare/v0.2.4..v0.2.5
+[#51]: https://github.com/powerman/tail/pull/51
+[#52]: https://github.com/powerman/tail/pull/52
+
 ## [0.2.4] - 2025-08-21
 
 [0.2.4]: https://github.com/powerman/tail/compare/v0.2.3..v0.2.4
