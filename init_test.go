@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 	"strconv"
+	"strings"
 	"testing"
 	"time"
 
@@ -126,16 +127,16 @@ func (tail *testTail) Want(timeout time.Duration, want string, wanterr error) {
 	t := tail.t
 	t.Helper()
 	timeoutc := time.After(timeout)
-	var s string
+	var s strings.Builder
 	for {
 		select {
 		case buf := <-tail.bufc:
-			s += string(buf)
+			s.Write(buf)
 		case err := <-tail.errc:
 			if err == nil {
 				err = io.ErrClosedPipe
 			}
-			t.Equal(s, want)
+			t.Equal(s.String(), want)
 			var perr *os.PathError
 			if errors.As(err, &perr) {
 				err = perr.Err
@@ -143,7 +144,7 @@ func (tail *testTail) Want(timeout time.Duration, want string, wanterr error) {
 			t.Err(err, wanterr)
 			return
 		case <-timeoutc:
-			t.Equal(s, want)
+			t.Equal(s.String(), want)
 			t.Nil(wanterr)
 			return
 		}
