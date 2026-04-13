@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.6] - 2026-04-13
+
+### 🐛 Fixed
+
+- Use O_RDONLY for regular files, reserve O_RDWR for FIFOs by @tobez in [#64]
+
+### 📦️ Dependencies
+
+- **(deps)** Bump golang.org/x/sys from 0.42.0 to 0.43.0 by @dependabot[bot] in [#62]
+
+[0.2.6]: https://github.com/powerman/tail/compare/v0.2.5..v0.2.6
+[#64]: https://github.com/powerman/tail/pull/64
+[#62]: https://github.com/powerman/tail/pull/62
+
 ## [0.2.5] - 2026-04-07
 
 ### 📦️ Dependencies
