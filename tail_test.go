@@ -320,6 +320,27 @@ func TestRotateSymlink(tt *testing.T) {
 	tail.Want(pollDelay*3/2, "new2\nold1.1\nold1.2\nnew1.1\nnew1.2\nnew2\n", nil)
 }
 
+func TestReadOnlyFile(tt *testing.T) {
+	if runtime.GOOS == "windows" {
+		tt.Skip("Permission tests work differently on Windows")
+	} else if os.Getuid() == 0 {
+		tt.Skip("Permission tests does not work as root")
+	}
+
+	t := check.T(tt)
+	t.Parallel()
+	tail := newTestTail(t)
+
+	// Make file read-only (no write permission for anyone).
+	t.Nil(os.Chmod(tail.path, 0o444))
+	tail.Run()
+
+	// Write via a separate fd opened before chmod.
+	tail.Write("new1\n")
+	tail.Want(pollDelay*3/2, "new1\n", nil)
+	tail.Want(pollTimeout+pollDelay/2, "", nil)
+}
+
 func TestErrors(tt *testing.T) {
 	if runtime.GOOS == "windows" {
 		tt.Skip("Permission tests work differently on Windows")
