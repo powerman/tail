@@ -12,8 +12,8 @@ import (
 )
 
 func TestInvalidPath(tt *testing.T) {
-	t := check.T(tt)
-	t.Parallel()
+	tt.Parallel()
+	t := check.Must(tt)
 	tail := newTestTail(t)
 
 	tail.path = ""
@@ -27,8 +27,8 @@ func TestInvalidPath(tt *testing.T) {
 }
 
 func TestNotExists(tt *testing.T) {
-	t := check.T(tt)
-	t.Parallel()
+	tt.Parallel()
+	t := check.Must(tt)
 	tail := newTestTail(t)
 
 	tail.Remove()
@@ -39,8 +39,8 @@ func TestNotExists(tt *testing.T) {
 }
 
 func TestNotExistsGrow(tt *testing.T) {
-	t := check.T(tt)
-	t.Parallel()
+	tt.Parallel()
+	t := check.Must(tt)
 	tail := newTestTail(t)
 
 	tail.Remove()
@@ -54,8 +54,8 @@ func TestNotExistsGrow(tt *testing.T) {
 }
 
 func TestEmpty(tt *testing.T) {
-	t := check.T(tt)
-	t.Parallel()
+	tt.Parallel()
+	t := check.Must(tt)
 	tail := newTestTail(t)
 
 	tail.Run()
@@ -64,8 +64,8 @@ func TestEmpty(tt *testing.T) {
 }
 
 func TestEmptyGrow(tt *testing.T) {
-	t := check.T(tt)
-	t.Parallel()
+	tt.Parallel()
+	t := check.Must(tt)
 	tail := newTestTail(t)
 
 	tail.Run()
@@ -75,8 +75,8 @@ func TestEmptyGrow(tt *testing.T) {
 }
 
 func TestEmptyGrowAsync(tt *testing.T) {
-	t := check.T(tt)
-	t.Parallel()
+	tt.Parallel()
+	t := check.Must(tt)
 	tail := newTestTail(t)
 
 	tail.Run()
@@ -96,8 +96,8 @@ func TestEmptyGrowAsync(tt *testing.T) {
 }
 
 func TestNotEmptyGrow(tt *testing.T) {
-	t := check.T(tt)
-	t.Parallel()
+	tt.Parallel()
+	t := check.Must(tt)
 	tail := newTestTail(t)
 
 	tail.Write("old1.1\nold1.2\n")
@@ -111,8 +111,8 @@ func TestNotEmptyGrow(tt *testing.T) {
 }
 
 func TestNotEmptyWhence(tt *testing.T) {
-	t := check.T(tt)
-	t.Parallel()
+	tt.Parallel()
+	t := check.Must(tt)
 	tail := newTestTail(t)
 
 	tail.Write("old1.1\nold1.2\n")
@@ -126,8 +126,8 @@ func TestNotEmptyWhence(tt *testing.T) {
 }
 
 func TestNotEmptyGrowBytes(tt *testing.T) {
-	t := check.T(tt)
-	t.Parallel()
+	tt.Parallel()
+	t := check.Must(tt)
 	tail := newTestTail(t)
 
 	tail.Write("old\nab")
@@ -143,12 +143,12 @@ func TestNotEmptyGrowBytes(tt *testing.T) {
 }
 
 func TestFIFOGrow(tt *testing.T) {
+	tt.Parallel()
+	t := check.Must(tt)
 	if runtime.GOOS == "windows" {
-		tt.Skip("FIFO pipes is not supported on Windows")
+		t.Skip("FIFO pipes is not supported on Windows")
 	}
 
-	t := check.T(tt)
-	t.Parallel()
 	tail := newTestTail(t)
 
 	tail.Remove()
@@ -165,8 +165,8 @@ func TestFIFOGrow(tt *testing.T) {
 }
 
 func TestClose(tt *testing.T) {
-	t := check.T(tt)
-	t.Parallel()
+	tt.Parallel()
+	t := check.Must(tt)
 	tail := newTestTail(t)
 
 	tail.Write("old1.1\nold1.2\n")
@@ -190,8 +190,8 @@ func TestClose(tt *testing.T) {
 }
 
 func TestRenameGrow(tt *testing.T) {
-	t := check.T(tt)
-	t.Parallel()
+	tt.Parallel()
+	t := check.Must(tt)
 	tail := newTestTail(t)
 
 	tail.Run()
@@ -204,8 +204,8 @@ func TestRenameGrow(tt *testing.T) {
 }
 
 func TestRemoveGrow(tt *testing.T) {
-	t := check.T(tt)
-	t.Parallel()
+	tt.Parallel()
+	t := check.Must(tt)
 	tail := newTestTail(t)
 
 	tail.Run()
@@ -218,8 +218,8 @@ func TestRemoveGrow(tt *testing.T) {
 }
 
 func TestRotate(tt *testing.T) {
-	t := check.T(tt)
-	t.Parallel()
+	tt.Parallel()
+	t := check.Must(tt)
 	tail := newTestTail(t)
 
 	tail.Run()
@@ -241,8 +241,8 @@ func TestRotate(tt *testing.T) {
 }
 
 func TestRotateAtEOF(tt *testing.T) {
-	t := check.T(tt)
-	t.Parallel()
+	tt.Parallel()
+	t := check.Must(tt)
 	tail := newTestTail(t)
 
 	tail.Run()
@@ -257,8 +257,8 @@ func TestRotateAtEOF(tt *testing.T) {
 }
 
 func TestRotateAtEOFGrow(tt *testing.T) {
-	t := check.T(tt)
-	t.Parallel()
+	tt.Parallel()
+	t := check.Must(tt)
 	tail := newTestTail(t)
 
 	tail.Run()
@@ -278,8 +278,8 @@ func TestRotateAtEOFGrow(tt *testing.T) {
 }
 
 func TestSymlink(tt *testing.T) {
-	t := check.T(tt)
-	t.Parallel()
+	tt.Parallel()
+	t := check.Must(tt)
 	tail := newTestTail(t)
 
 	tail.CreateSymlink()
@@ -295,8 +295,8 @@ func TestSymlink(tt *testing.T) {
 }
 
 func TestRotateSymlink(tt *testing.T) {
-	t := check.T(tt)
-	t.Parallel()
+	tt.Parallel()
+	t := check.Must(tt)
 	tail := newTestTail(t)
 
 	tail.CreateSymlink()
@@ -321,14 +321,14 @@ func TestRotateSymlink(tt *testing.T) {
 }
 
 func TestReadOnlyFile(tt *testing.T) {
+	tt.Parallel()
+	t := check.Must(tt)
 	if runtime.GOOS == "windows" {
-		tt.Skip("Permission tests work differently on Windows")
+		t.Skip("Permission tests work differently on Windows")
 	} else if os.Getuid() == 0 {
-		tt.Skip("Permission tests does not work as root")
+		t.Skip("Permission tests does not work as root")
 	}
 
-	t := check.T(tt)
-	t.Parallel()
 	tail := newTestTail(t)
 
 	// Make file read-only (no write permission for anyone).
@@ -342,14 +342,14 @@ func TestReadOnlyFile(tt *testing.T) {
 }
 
 func TestErrors(tt *testing.T) {
+	tt.Parallel()
+	t := check.Must(tt)
 	if runtime.GOOS == "windows" {
-		tt.Skip("Permission tests work differently on Windows")
+		t.Skip("Permission tests work differently on Windows")
 	} else if os.Getuid() == 0 { // Happens in QEMU/Docker containers used for ARM/ARM64.
-		tt.Skip("Permission tests does not work as root")
+		t.Skip("Permission tests does not work as root")
 	}
 
-	t := check.T(tt)
-	t.Parallel()
 	tail := newTestTail(t)
 
 	t.Nil(os.Chmod(tail.path, 0))

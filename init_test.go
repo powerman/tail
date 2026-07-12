@@ -31,7 +31,7 @@ func floatGetenv(name string, def float64) float64 {
 type testTail struct {
 	*Tail
 
-	t       *check.C
+	t       *check.TB
 	f       *os.File
 	path    string
 	symlink string
@@ -42,7 +42,7 @@ type testTail struct {
 	Cancel  context.CancelFunc
 }
 
-func newTestTail(t *check.C) *testTail {
+func newTestTail(t *check.TB) *testTail {
 	t.Helper()
 	f, err := createTempFile("", "gotest")
 	t.Nil(err)

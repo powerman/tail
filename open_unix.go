@@ -31,7 +31,7 @@ func openFile(path string) (*os.File, error) {
 	if err != nil {
 		return nil, err
 	}
-	f := os.NewFile(uintptr(fd), path) //nolint:gosec // False positive.
+	f := os.NewFile(uintptr(fd), path)
 	return f, nil
 }
 
