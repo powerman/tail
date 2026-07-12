@@ -247,3 +247,7 @@ url_api = "https://api.github.com/repos/gotestyourself/gotestsum/releases/assets
 checksum = "sha256:fd5a6dc69e46a0970593e70d85a7e75f16714e9c61d6d72ccc324eb82df5bb8a"
 url = "https://github.com/gotestyourself/gotestsum/releases/download/v1.13.0/gotestsum_1.13.0_windows_amd64.tar.gz"
 url_api = "https://api.github.com/repos/gotestyourself/gotestsum/releases/assets/291996823"
+
+[[tools.prettier]]
+version = "3.9.4"
+backend = "npm:prettier"
