@@ -15,7 +15,7 @@ import (
 
 var (
 	testTimeFactor = floatGetenv("GO_TEST_TIME_FACTOR", 1.0)
-	testSecond     = time.Duration(float64(time.Second) * testTimeFactor) //nolint:revive // It's actually a second.
+	testSecond     = time.Duration(float64(time.Second) * testTimeFactor)
 	pollDelay      = testSecond / 10
 	pollTimeout    = testSecond / 2
 )
