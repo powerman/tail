@@ -137,8 +137,7 @@ func (tail *testTail) Want(timeout time.Duration, want string, wanterr error) {
 				err = io.ErrClosedPipe
 			}
 			t.Equal(s.String(), want)
-			var perr *os.PathError
-			if errors.As(err, &perr) {
+			if perr, ok := errors.AsType[*os.PathError](err); ok {
 				err = perr.Err
 			}
 			t.Err(err, wanterr)
